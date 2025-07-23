@@ -30,10 +30,10 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		48AC4FEC2E30FEB5009F66B5 /* Exceptions for "The Dreamer" folder in "The Dreamer" target */ = {
+		48AC503E2E310A55009F66B5 /* Exceptions for "The Dreamer" folder in "The Dreamer" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Assets/Info.plist,
+				Info.plist,
 			);
 			target = 48AC4FC82E30FEB4009F66B5 /* The Dreamer */;
 		};
@@ -43,7 +43,7 @@
 		48AC4FCB2E30FEB4009F66B5 /* The Dreamer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				48AC4FEC2E30FEB5009F66B5 /* Exceptions for "The Dreamer" folder in "The Dreamer" target */,
+				48AC503E2E310A55009F66B5 /* Exceptions for "The Dreamer" folder in "The Dreamer" target */,
 			);
 			path = "The Dreamer";
 			sourceTree = "<group>";
