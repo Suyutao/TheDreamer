@@ -33,7 +33,7 @@
 		48AC4FEC2E30FEB5009F66B5 /* Exceptions for "The Dreamer" folder in "The Dreamer" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Assets/Info.plist,
 			);
 			target = 48AC4FC82E30FEB4009F66B5 /* The Dreamer */;
 		};
