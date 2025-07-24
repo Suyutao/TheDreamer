@@ -1,63 +1,12 @@
 //
-//  Item.swift
+//  SubjectScore.swift
 //  The Dreamer
 //
-//  Created by 苏宇韬 on 7/23/25.
+//  Created by 苏宇韬 on 7/24/25.
 //
 
 import Foundation
 import SwiftData
-
-@Model
-final class Item {
-    var timestamp: Date
-    
-    init(timestamp: Date) {
-        self.timestamp = timestamp
-    }
-}
-
-@Model
-final class UserProfile {
-    @Attribute(.unique) var id: UUID
-    var region: String
-    var schoolType: String
-    var examMode: String
-    var selectedSubjects: [String] // SwiftData不支持直接存枚举数组，建议用String
-    var semesterStartDate: Date
-
-    init(id: UUID = .init(), region: String, schoolType: String, examMode: String, selectedSubjects: [String], semesterStartDate: Date) {
-        self.id = id
-        self.region = region
-        self.schoolType = schoolType
-        self.examMode = examMode
-        self.selectedSubjects = selectedSubjects
-        self.semesterStartDate = semesterStartDate
-    }
-}
-
-@Model
-final class ExamGroup {
-    @Attribute(.unique) var id: UUID
-    var name: String // ExamName.rawValue
-    var customName: String?
-    var date: Date
-    var examType: String // ExamType.rawValue
-    var scoreCategory: String // ScoreCategory.rawValue
-    var customCategoryName: String?
-    var remark: String?
-
-    init(id: UUID = .init(), name: String, customName: String? = nil, date: Date, examType: String, scoreCategory: String, customCategoryName: String? = nil, remark: String? = nil) {
-        self.id = id
-        self.name = name
-        self.customName = customName
-        self.date = date
-        self.examType = examType
-        self.scoreCategory = scoreCategory
-        self.customCategoryName = customCategoryName
-        self.remark = remark
-    }
-}
 
 @Model
 final class SubjectScore {
@@ -85,17 +34,17 @@ final class SubjectScore {
     init(
         id: UUID = .init(),
         groupID: UUID? = nil,
-        isUnited: Bool,
+        isUnited: Bool = false,
         subject: String,
         score: Double,
-        fullScore: Double,
-        isCurved: Bool,
-        isElective: Bool,
+        fullScore: Double = 150,
+        isCurved: Bool = false,
+        isElective: Bool = false,
         classRank: Int? = nil,
         classTotal: Int? = nil,
         gradeRank: Int? = nil,
         gradeTotal: Int? = nil,
-        scoreRatio: Double,
+        scoreRatio: Double = 0,
         classRankRatio: Double? = nil,
         gradeRankRatio: Double? = nil,
         classAverage: Double? = nil,
