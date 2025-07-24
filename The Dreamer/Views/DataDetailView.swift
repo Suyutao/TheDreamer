@@ -18,7 +18,6 @@ struct DataDetailView: View {
             Text("备注：\(score.remark ?? "无")")
             Text("是否大考：\(score.isUnited ? "是" : "否")")
             Text("是否赋分：\(score.isCurved ? "是" : "否")")
-            Text("是否选修：\(score.isElective ? "是" : "否")")
             Text("班级排名：\(score.classRank ?? 0)")
             Text("班级总人数：\(score.classTotal ?? 0)")
             Text("年级排名：\(score.gradeRank ?? 0)")

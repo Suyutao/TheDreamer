@@ -39,7 +39,7 @@ final class SubjectScore {
         score: Double,
         fullScore: Double = 150,
         isCurved: Bool = false,
-        isElective: Bool = false,
+        isElective: Bool = true,
         classRank: Int? = nil,
         classTotal: Int? = nil,
         gradeRank: Int? = nil,
