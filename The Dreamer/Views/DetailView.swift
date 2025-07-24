@@ -8,9 +8,10 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct DetailView: View {
     @Query var subjectScores: [SubjectScore]
     @Environment(\.modelContext) private var modelContext
+    @State private var showAddSheet = false
 
     var body: some View {
         NavigationView {
@@ -25,11 +26,14 @@ struct ContentView: View {
             .navigationTitle("成绩列表")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: addScore) {
-                        Label("添加成绩", systemImage: "plus")
+                    Button(action: { showAddSheet = true }) {
+                        Text("添加成绩")
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showAddSheet) {
+            AddDataView(showSheet: $showAddSheet)
         }
     }
 
@@ -60,7 +64,21 @@ struct ScoreDetailView: View {
     }
 }
 
+// 新建添加数据的Sheet视图占位
+struct AddDataView: View {
+    @Binding var showSheet: Bool
+    var body: some View {
+        VStack {
+            Text("这里是添加成绩的表单")
+            Button("关闭") {
+                showSheet = false
+            }
+        }
+        .padding()
+    }
+}
+
 #Preview {
-    ContentView()
+    DetailView()
         .modelContainer(for: Item.self, inMemory: true)
 }
