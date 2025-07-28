@@ -31,7 +31,7 @@ struct AddDataView: View {
     @State private var score = ""
     @State private var classRank = ""
     @State private var gradeRank = ""
-    @State private var selectedSubject = "数学"
+    @State private var selectedSubject = ""
     
     var body: some View {
         NavigationStack {

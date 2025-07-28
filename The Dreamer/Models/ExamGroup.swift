@@ -11,22 +11,23 @@ import SwiftData
 @Model
 final class ExamGroup {
     @Attribute(.unique) var id: UUID
-    var name: String // ExamName.rawValue
-    var customName: String?
+    var name: String
+    var type: ExamType // 大型考试/小型考试
     var date: Date
-    var examType: String // ExamType.rawValue
-    var scoreCategory: String // ScoreCategory.rawValue
-    var customCategoryName: String?
-    var remark: String?
-
-    init(id: UUID = .init(), name: String, customName: String? = nil, date: Date, examType: String, scoreCategory: String, customCategoryName: String? = nil, remark: String? = nil) {
+    var groupId: String? // 用于关联同一大型考试下的小型考试
+    var subjectScores: [SubjectScore]?
+    
+    init(id: UUID = .init(), name: String, type: ExamType, date: Date, groupId: String? = nil, subjectScores: [SubjectScore]? = nil) {
         self.id = id
         self.name = name
-        self.customName = customName
+        self.type = type
         self.date = date
-        self.examType = examType
-        self.scoreCategory = scoreCategory
-        self.customCategoryName = customCategoryName
-        self.remark = remark
+        self.groupId = groupId
+        self.subjectScores = subjectScores
     }
+}
+
+enum ExamType: String, Codable {
+    case large // 大型考试
+    case small // 小型考试
 }

@@ -12,7 +12,7 @@ struct DetailView: View {
     @Query var subjectScores: [SubjectScore]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
-    @State private var selectedType: EntryType = .homework
+    @State private var selectedType: EntryType
 
     var body: some View {
         NavigationView {
@@ -29,8 +29,8 @@ struct DetailView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Menu("单科") {
-                            Button("数学") { selectedType = .singleSubject("数学"); showAddSheet = true }
                             Button("语文") { selectedType = .singleSubject("语文"); showAddSheet = true }
+                            Button("数学") { selectedType = .singleSubject("数学"); showAddSheet = true }
                             Button("英语") { selectedType = .singleSubject("英语"); showAddSheet = true }
                             Button("物理") { selectedType = .singleSubject("物理"); showAddSheet = true }
                             Button("化学") { selectedType = .singleSubject("化学"); showAddSheet = true }
@@ -62,6 +62,6 @@ struct DetailView: View {
 }
 
 #Preview {
-    DetailView()
+    DetailView( selectedType: .homework)
         .modelContainer(for: Item.self, inMemory: true)
 }
