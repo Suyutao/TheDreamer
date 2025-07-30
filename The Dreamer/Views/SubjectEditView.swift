@@ -40,34 +40,32 @@ struct SubjectEditView: View {
 
     // MARK: - Main Body
     var body: some View {
-        NavigationView {
-            Form {
-                FormHeader(
-                    iconName: "book.fill",
-                    title: navigationTitleString,
-                    iconColor: .orange
-                )
-                
-                Section(header: Text("科目信息")) {
-                    TextField("科目名称", text: $name)
-                    TextField("满分 (正整数)", text: $totalScoreText) // [V26] 更新提示文字
-                        .keyboardType(.numberPad) // [V26] 明确使用 numberPad
-                }
+        Form {  // 移除了 NavigationView
+            FormHeader(
+                iconName: "book.fill",
+                title: navigationTitleString,
+                iconColor: .orange
+            )
+            
+            Section(header: Text("科目信息")) {
+                TextField("科目名称", text: $name)
+                TextField("满分 (正整数)", text: $totalScoreText) // [V26] 更新提示文字
+                    .keyboardType(.numberPad) // [V26] 明确使用 numberPad
             }
-            .navigationTitle(navigationTitleString)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存", action: save)
-                        // [V24] 绑定按钮的禁用状态
-                        .disabled(isSaveButtonDisabled)
-                }
-            }
-            .onAppear(perform: setupInitialState)
         }
+        .navigationTitle(navigationTitleString)  // 保留 navigationTitle 供父级 NavigationView 使用
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("取消") { dismiss() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("保存", action: save)
+                    // [V24] 绑定按钮的禁用状态
+                    .disabled(isSaveButtonDisabled)
+            }
+        }
+        .onAppear(perform: setupInitialState)
     }
     
     // MARK: - Functions
