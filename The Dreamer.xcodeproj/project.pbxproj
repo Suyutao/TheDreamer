@@ -200,11 +200,12 @@
 				};
 			};
 			buildConfigurationList = 48AC4FC42E30FEB4009F66B5 /* Build configuration list for PBXProject "The Dreamer" */;
-			developmentRegion = en;
+			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 48AC4FC02E30FEB4009F66B5;
 			minimizedProjectReferenceProxies = 1;

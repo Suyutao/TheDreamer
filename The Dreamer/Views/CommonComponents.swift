@@ -56,3 +56,20 @@ struct EmptyStateView: View {
         .offset(y: -50)
     }
 }
+
+#Preview{
+    Form {
+        FormHeader(
+            iconName: "plus.circle.fill",
+            title: "这是一个预览",
+            iconColor: .blue
+        )
+    }
+}
+
+#Preview{
+    EmptyStateView(
+        title: "没有数据",
+        message: "目前没有任何数据，请添加新的项目。"
+    )
+}

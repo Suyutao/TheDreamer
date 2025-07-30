@@ -10,9 +10,7 @@ enum AddableDataType {
 
 struct AddDataView: View {
     
-    // =======================================================================
     // MARK: - Properties & State
-    // =======================================================================
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -32,14 +30,12 @@ struct AddDataView: View {
     @Query(sort: \Subject.name) private var subjects: [Subject]
     @Query(sort: \PracticeCollection.name) private var practiceCollections: [PracticeCollection]
 
-    // =======================================================================
     // MARK: - Main Body
-    // =======================================================================
     var body: some View {
         NavigationView {
             Form {
                 // [V23] 使用新的可复用组件
-                ReusableFormHeader(
+                FormHeader(
                     iconName: dataType == .exam ? "doc.text.fill" : "pencil.and.ruler.fill",
                     title: navigationTitle,
                     iconColor: .accentColor
@@ -66,9 +62,7 @@ struct AddDataView: View {
         }
     }
   
-    // =======================================================================
     // MARK: - Encapsulated View Components
-    // =======================================================================
     
     private var examForm: some View {
         Section(header: Text("考试信息")) {
@@ -102,9 +96,7 @@ struct AddDataView: View {
         }
     }
     
-    // =======================================================================
     // MARK: - Computed Properties & Functions
-    // =======================================================================
     
     private var navigationTitle: String {
         dataType == .exam ? "添加考试" : "添加练习"
@@ -143,9 +135,7 @@ struct AddDataView: View {
     }
 }
 
-// =======================================================================
 // MARK: - Preview
-// =======================================================================
 
 #Preview("添加考试") {
     // [V18] 必须提供所有相关的模型给容器，以便预览正常工作
