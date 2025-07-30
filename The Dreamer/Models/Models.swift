@@ -147,3 +147,48 @@ final class Question {
         self.exam = exam
     }
 }
+
+// =======================================================================
+// MARK: - 5. 练习实例与练习组 (Added in V18)
+// =======================================================================
+
+@Model
+final class PracticeCollection {
+    /// [V18] “练习组”模型。用于将同一类型的练习归类。
+    /// 例如：“数学午间练”、“英语听力打卡”等。
+    var name: String
+    
+    /// [V18] 关系：一个练习组必须属于一个科目。
+    var subject: Subject?
+    
+    /// [V18] 关系：一个练习组包含多个“练习”实例。
+    @Relationship(deleteRule: .cascade)
+    var practices: [Practice] = []
+    
+    init(name: String, subject: Subject?) {
+        self.name = name
+        self.subject = subject
+    }
+}
+
+@Model
+final class Practice {
+    /// [V18] “练习”实例模型。这是一个轻量级的成绩记录。
+    var date: Date
+    var score: Double
+    
+    /// [V18] 关系：一个练习必须属于一个练习组。
+    var collection: PracticeCollection?
+    
+    /// [V18] 冗余存储科目信息，用于优化查询。
+    /// 在创建时，会自动从其所属的collection中复制subject信息。
+    var subject: Subject?
+    
+    init(date: Date, score: Double, collection: PracticeCollection) {
+        self.date = date
+        self.score = score
+        self.collection = collection
+        self.subject = collection.subject
+    }
+}
+
