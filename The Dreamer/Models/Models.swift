@@ -11,7 +11,7 @@ import SwiftData
 import Foundation
 
 // =======================================================================
-// MARK: - 1. 基础定义模型 (The Building Blocks)
+// MARK: - 基础定义模型 (The Building Blocks)
 // =======================================================================
 
 @Model
@@ -35,7 +35,7 @@ final class QuestionType {
 }
 
 // =======================================================================
-// MARK: - 2. 核心配置与枢纽模型 (The Hub)
+// MARK: - 核心配置与枢纽模型 (The Hub)
 // =======================================================================
 
 @Model
@@ -43,6 +43,10 @@ final class Subject {
     /// [V7] “科目”模型，是数据的枢纽。
     var name: String
     var totalScore: Double
+    
+    // [V22] 新增：用于手动排序的索引。
+    // [V22] 数字越小，排在越前面。
+    var orderIndex: Int
     
     /// [V7] 关系: 一个科目下可以有多个“卷子模板”。
     @Relationship(deleteRule: .cascade)
@@ -60,14 +64,15 @@ final class Subject {
         return Array(Set(allTypes)).sorted(by: { $0.name < $1.name })
     }
     
-    init(name: String, totalScore: Double) {
-        self.name = name
-        self.totalScore = totalScore
+    init(name: String, totalScore: Double, orderIndex: Int = 0) {
+            self.name = name
+            self.totalScore = totalScore
+            self.orderIndex = orderIndex
     }
 }
 
 // =======================================================================
-// MARK: - 3. 模板与题目模板 (The Blueprints)
+// MARK: - 模板与题目模板 (The Blueprints)
 // =======================================================================
 
 @Model
@@ -104,7 +109,7 @@ final class QuestionTemplate {
 }
 
 // =======================================================================
-// MARK: - 4. 考试实例与题目实例 (The Instances)
+// MARK: - 考试实例与题目实例 (The Instances)
 // =======================================================================
 
 @Model
@@ -149,7 +154,7 @@ final class Question {
 }
 
 // =======================================================================
-// MARK: - 5. 练习实例与练习组 (Added in V18)
+// MARK: - 练习实例与练习组 (Added in V18)
 // =======================================================================
 
 @Model
