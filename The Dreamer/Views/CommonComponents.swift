@@ -54,7 +54,6 @@ struct EmptyStateView: View {
                 .padding(.horizontal)
         }
         .padding()
-        .scaleEffect(0.85) // [V24] 缩小视图，使其更精致
         .offset(y: -50)
     }
 }

@@ -13,50 +13,66 @@ struct ManageSubjectsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    // [V23] 修正：为了手动排序，我们需要移除 @Query 的自动排序。
+    // [V30] 回归本源：让@Query负责排序。这是最可靠的数据来源。
     @Query(sort: \Subject.orderIndex) private var subjects: [Subject]
     
     @State private var isShowingSheet = false
     @State private var subjectToEdit: Subject?
-    
-    // [V23] 用于控制列表的编辑模式
     @State private var editMode: EditMode = .inactive
 
     // MARK: - Main Body
     var body: some View {
         NavigationView {
             ZStack {
-                if subjects.isEmpty && !editMode.isEditing {
+                // [V30] 逻辑简化：UI直接由@Query驱动，不再有中间状态。
+                if subjects.isEmpty {
                     EmptyStateView(
                         title: "尚无科目",
                         message: "点击右上角的 '+' 按钮来创建你的第一个学习科目吧。"
                     )
-                    // [V27] 解决方案：在分支内部应用标题
                     .navigationTitle("管理科目")
-                    .navigationBarTitleDisplayMode(.inline) // [V27] 保持标题样式一致
+                    .navigationBarTitleDisplayMode(.inline)
                 } else {
                     List {
+                        // [V30] 直接遍历@Query的结果
                         ForEach(subjects) { subject in
-                            NavigationLink(destination: SubjectDetailView(subject: subject)) {
-                                SubjectRow(subject: subject)
+                            HStack {
+                                // [V30] 在编辑模式下，显示排序控件
+                                if editMode.isEditing {
+                                    VStack {
+                                        // 上移按钮
+                                        Button(action: { moveUp(subject) }) {
+                                            Image(systemName: "chevron.up")
+                                        }
+                                        .disabled(subject == subjects.first) // 第一个不能上移
+                                        
+                                        // 下移按钮
+                                        Button(action: { moveDown(subject) }) {
+                                            Image(systemName: "chevron.down")
+                                        }
+                                        .disabled(subject == subjects.last) // 最后一个不能下移
+                                    }
+                                    .buttonStyle(.borderless) // 移除按钮的默认样式
+                                    .padding(.trailing)
+                                }
+                                
+                                NavigationLink(destination: SubjectDetailView(subject: subject)) {
+                                    SubjectRow(subject: subject)
+                                }
                             }
                         }
-                        .onMove(perform: moveSubject)
                         .onDelete(perform: deleteSubject)
+                        // [V30] 彻底移除 .onMove
                     }
-                    // [V27] 解决方案：在分支内部应用标题
                     .navigationTitle("管理科目")
-                    .navigationBarTitleDisplayMode(.inline) // [V27] 保持标题样式一致
+                    .navigationBarTitleDisplayMode(.inline)
                 }
             }
-            // [V27] 移除在ZStack或Group上的旧标题修饰符
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("完成") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    // [V22] EditButton 会自动处理 editMode 的切换
-                    // [V27] 恢复使用标准的、可本地化的EditButton
                     EditButton()
                 }
                 ToolbarItem(placement: .primaryAction) {
@@ -67,40 +83,46 @@ struct ManageSubjectsView: View {
                 }
             }
             .sheet(isPresented: $isShowingSheet) {
-                // [V25] 在这里为 SubjectEditView 提供 onSave 的实现
                 SubjectEditView(subject: subjectToEdit) { name, totalScore in
                     saveSubject(name: name, totalScore: totalScore)
                 }
             }
-            // [V22] 将 editMode 状态绑定到环境中，让 EditButton 和 List 联动
             .environment(\.editMode, $editMode)
         }
     }
     
     // MARK: - Functions
+    private func moveUp(_ subject: Subject) {
+        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex > 0 else { return }
+        let previousIndex = currentIndex - 1
+        
+        // 交换 orderIndex
+        let subjectToSwap = subjects[previousIndex]
+        let tempOrderIndex = subject.orderIndex
+        subject.orderIndex = subjectToSwap.orderIndex
+        subjectToSwap.orderIndex = tempOrderIndex
+    }
+    
+    private func moveDown(_ subject: Subject) {
+        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex < subjects.count - 1 else { return }
+        let nextIndex = currentIndex + 1
+        
+        // 交换 orderIndex
+        let subjectToSwap = subjects[nextIndex]
+        let tempOrderIndex = subject.orderIndex
+        subject.orderIndex = subjectToSwap.orderIndex
+        subjectToSwap.orderIndex = tempOrderIndex
+    }
     
     private func saveSubject(name: String, totalScore: Double) {
-            // [V25] 所有的保存逻辑现在都集中在这里
         if let subjectToEdit = subjectToEdit {
-                // 编辑模式
             subjectToEdit.name = name
             subjectToEdit.totalScore = totalScore
         } else {
-                // 添加模式
             let newIndex = (subjects.map(\.orderIndex).max() ?? -1) + 1
-            let newSubject = Subject(
-                name: name,
-                totalScore: totalScore,
-                orderIndex: newIndex
-            )
+            let newSubject = Subject(name: name, totalScore: totalScore, orderIndex: newIndex)
             modelContext.insert(newSubject)
         }
-            // [V25] SwiftData 会自动处理保存，我们不需要手动调用 modelContext.save()
-    }
-    
-    private func showAddSheet() {
-        subjectToEdit = nil
-        isShowingSheet = true
     }
     
     private func deleteSubject(at offsets: IndexSet) {
@@ -110,17 +132,12 @@ struct ManageSubjectsView: View {
         }
     }
     
-    private func moveSubject(from source: IndexSet, to destination: Int) {
-            // [V22] 这是手动排序的核心逻辑
-        var revisedSubjects = subjects
-        revisedSubjects.move(fromOffsets: source, toOffset: destination)
-        
-            // [V22] 更新 orderIndex 以持久化排序
-        for (index, subject) in revisedSubjects.enumerated() {
-            subject.orderIndex = index
-        }
+    private func showAddSheet() {
+        subjectToEdit = nil
+        isShowingSheet = true
     }
 }
+
 
 
 // MARK: - Encapsulated Row View
