@@ -26,27 +26,29 @@ struct ManageSubjectsView: View {
     
     var body: some View {
         NavigationView {
-            // [V23] 使用 ZStack 将列表和空状态视图堆叠在一起
-            ZStack {
-                // [V24] 只有在非编辑模式下，才可能显示空状态
-                if subjects.isEmpty && !editMode.isEditing {
-                    EmptyStateView(
-                        title: "尚无科目",
-                        message: "点击右上角的 '+' 按钮来创建你的第一个学习科目吧。"
-                    )
-                } else {
-                    List {
-                        ForEach(subjects) { subject in
-                            NavigationLink(destination: SubjectDetailView(subject: subject)) {
-                                SubjectRow(subject: subject)
+            Group { // [V26] 使用 Group 来包裹 ZStack，确保标题稳定性
+                // [V23] 使用 ZStack 将列表和空状态视图堆叠在一起
+                ZStack {
+                    // [V24] 只有在非编辑模式下，才可能显示空状态
+                    if subjects.isEmpty && !editMode.isEditing {
+                        EmptyStateView(
+                            title: "尚无科目",
+                            message: "点击右上角的 '+' 按钮来创建你的第一个学习科目吧。"
+                        )
+                    } else {
+                        List {
+                            ForEach(subjects) { subject in
+                                NavigationLink(destination: SubjectDetailView(subject: subject)) {
+                                    SubjectRow(subject: subject)
+                                }
                             }
+                            .onMove(perform: moveSubject)
+                            .onDelete(perform: deleteSubject)
                         }
-                        .onMove(perform: moveSubject)
-                        .onDelete(perform: deleteSubject)
                     }
                 }
             }
-            .navigationTitle("管理科目")
+            .navigationTitle("管理科目") // [V26] 将标题应用在 Group 上
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("完成") { dismiss() }

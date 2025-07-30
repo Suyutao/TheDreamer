@@ -23,13 +23,15 @@ struct SubjectEditView: View {
     
     // MARK: - Computed Properties
     private var isSaveButtonDisabled: Bool {
-        // [V24] 实时表单验证逻辑
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty,
-              let score = Double(totalScoreText) else {
+              // 1. 确保能转换为 Int
+              let score = Int(totalScoreText),
+              // 2. 确保没有小数点 (通过比较Int和Double的转换结果)
+              Double(totalScoreText) == Double(score) else {
             return true
         }
-        // [V24] 验证分数是否在合理范围内
-        return score < 1 || score > 1000
+        // 3. 确保分数大于0
+        return score < 1
     }
     
     private var navigationTitleString: String {
@@ -48,8 +50,8 @@ struct SubjectEditView: View {
                 
                 Section(header: Text("科目信息")) {
                     TextField("科目名称", text: $name)
-                    TextField("满分 (1-1000)", text: $totalScoreText)
-                        .keyboardType(.decimalPad)
+                    TextField("满分 (正整数)", text: $totalScoreText) // [V26] 更新提示文字
+                        .keyboardType(.numberPad) // [V26] 明确使用 numberPad
                 }
             }
             .navigationTitle(navigationTitleString)
@@ -77,9 +79,11 @@ struct SubjectEditView: View {
     }
     
     private func save() {
-        guard let scoreValue = Double(totalScoreText) else { return }
-        // [V25] 调用 onSave 闭包，将数据传出
-        onSave(name.trimmingCharacters(in: .whitespaces), scoreValue)
+        // [V26] 使用 Int 进行转换
+        guard let scoreValue = Int(totalScoreText) else { return }
+        
+        // [V26] 将 Int 转换为 Double 传递出去，因为我们的模型需要 Double
+        onSave(name.trimmingCharacters(in: .whitespaces), Double(scoreValue))
         dismiss()
     }
 }

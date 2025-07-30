@@ -32,12 +32,14 @@ struct FormHeader: View {
 
 // MARK: - Empty State View
 struct EmptyStateView: View {
+    // [V26] 新增 iconName 参数，并提供默认值
+    let iconName: String = "books.vertical.fill"
     let title: String
     let message: String
     
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "books.vertical.fill")
+            Image(systemName: iconName) // [V26] 使用传入的图标
                 .font(.system(size: 70))
                 .foregroundStyle(.secondary)
             
