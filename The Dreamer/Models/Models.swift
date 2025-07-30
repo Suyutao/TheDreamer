@@ -8,6 +8,7 @@
 // [V8] 最终确认此模型作为编码的起点。
 
 import SwiftData
+import Foundation
 
 // =======================================================================
 // MARK: - 1. 基础定义模型 (The Building Blocks)
