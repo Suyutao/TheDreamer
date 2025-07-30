@@ -12,8 +12,7 @@ import SwiftData
 struct TheDreamerApp: App {
     var body: some Scene {
         WindowGroup {
-            DetailView()
+            
         }
-        .modelContainer(for: [UserProfile.self, ExamGroup.self, SubjectScore.self])
     }
 }
