@@ -12,8 +12,7 @@ import SwiftData
 struct TheDreamerApp: App {
     var body: some Scene {
         WindowGroup {
-            ManageSubjectsView()
-                .modelContainer(for: Subject.self)
+            MainTabView()
         }
     }
 }

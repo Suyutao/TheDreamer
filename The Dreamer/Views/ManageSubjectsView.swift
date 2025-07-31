@@ -23,7 +23,10 @@ struct ManageSubjectsView: View {
         NavigationView {
             ZStack {
                 if subjects.isEmpty {
-                    EmptyStateView(title: "尚无科目", message: "点击右上角的 '+' 按钮来创建你的第一个学习科目")
+                    EmptyStateView(
+                        iconName: "books.vertical.fill",
+                        title: "尚无科目",
+                        message: "点击右上角的 '+' 按钮来创建你的第一个学习科目")
                 } else {
                     List {
                         ForEach(subjects) { subject in

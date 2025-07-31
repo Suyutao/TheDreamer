@@ -33,7 +33,7 @@ struct FormHeader: View {
 // MARK: - Empty State View
 struct EmptyStateView: View {
     // [V26] 新增 iconName 参数，并提供默认值
-    let iconName: String = "books.vertical.fill"
+    let iconName: String
     let title: String
     let message: String
     
@@ -58,7 +58,7 @@ struct EmptyStateView: View {
     }
 }
 
-#Preview{
+#Preview("Header") {
     Form {
         FormHeader(
             iconName: "plus.circle.fill",
@@ -68,8 +68,9 @@ struct EmptyStateView: View {
     }
 }
 
-#Preview{
+#Preview("EmptyStateView") {
     EmptyStateView(
+        iconName:  "plus.circle.fill",
         title: "没有数据",
         message: "目前没有任何数据，请添加新的项目。"
     )
