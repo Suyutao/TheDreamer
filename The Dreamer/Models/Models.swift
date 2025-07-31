@@ -94,6 +94,28 @@ final class Subject {
 // MARK: - 模板与题目模板 (The Blueprints)
 
 @Model
+final class PaperStructure { 
+    init(name: String, isTemplate: Bool, subject: Subject? = nil, questionDefinitions: [QuestionDefinition] = []) {
+        self.name = name
+        self.isTemplate = isTemplate
+        self.subject = subject
+        self.questionDefinitions = questionDefinitions
+    }
+    var name: String // e.g., "高三数学期末卷", "英语周练卷" 
+    var isTemplate: Bool // 是否为通用模板 
+    var subject: Subject? 
+    
+    // 包含的题目定义 
+    @Relationship(deleteRule: .cascade) 
+    var questionDefinitions: [QuestionDefinition] = [] 
+    
+    // 计算属性：卷面总分 
+    var totalScore: Double { 
+        questionDefinitions.reduce(0) { $0 + $1.points } 
+    } 
+}
+
+@Model
 final class PaperTemplate {
     /// [V7] "卷子模板"模型，是可复用的卷子结构蓝图。
     var name: String
@@ -106,6 +128,20 @@ final class PaperTemplate {
         self.name = name
         self.subject = subject
     }
+}
+
+@Model
+final class QuestionDefinition {
+    init(questionNumber: String, points: Double, type: QuestionType? = nil, method: String? = nil) {
+        self.questionNumber = questionNumber
+        self.points = points
+        self.type = type
+        self.method = method
+    }
+    var questionNumber: String // 题号, e.g., "1", "2a", "III"
+    var points: Double // 分值
+    var type: QuestionType? // 题型
+    var method: String? // 考法 (可选, e.g., "阅读理解", "完形填空")
 }
 
 @Model
@@ -126,7 +162,7 @@ final class QuestionTemplate {
     }
 }
 
-// MARK: - 考试实例与题目实例 (The Instances)
+// MARK: - 考试实例、联考实例与题目实例 (The Instances)
 
 @Model
 final class Exam {
@@ -140,7 +176,6 @@ final class Exam {
     var questions: [Question] = []
     
     // 关系
-    var subject: Subject?
     var collection: ExamCollection? // 可选，属于某个联考
     
     // 新增：与卷子结构的关联
@@ -162,6 +197,26 @@ final class Exam {
 }
 
 @Model
+final class ExamCollection { 
+    var name: String 
+    var date: Date 
+    
+    @Relationship(inverse: \Exam.collection) 
+    var exams: [Exam] = [] 
+    
+    var classRank: RankData? 
+    var gradeRank: RankData? 
+    
+    init(name: String, date: Date, classRank: RankData? = nil, gradeRank: RankData? = nil) { 
+        self.name = name 
+        self.date = date 
+        self.classRank = classRank 
+        self.gradeRank = gradeRank 
+    } 
+}
+
+
+@Model
 final class Question {
     /// [V7] "题目"实例模型，核心数据是"得分(score)"。
     var questionNumber: String
@@ -178,6 +233,19 @@ final class Question {
         self.type = type
         self.method = method
         self.exam = exam
+    }
+}
+
+@Model
+final class QuestionResult {
+    var score: Double // 得分
+    
+    // 关联到题目定义，以获取题号、分值、类型等信息
+    var definition: QuestionDefinition?
+    
+    init(score: Double, definition: QuestionDefinition? = nil) {
+        self.score = score
+        self.definition = definition
     }
 }
 
@@ -223,3 +291,14 @@ final class Practice {
     }
 }
 
+@Model
+final class RankData {
+    init(rank: Int, medianScore: Double? = nil, averageScore: Double? = nil) {
+        self.rank = rank
+        self.medianScore = medianScore
+        self.averageScore = averageScore
+    }
+    var rank: Int // 排名
+    var medianScore: Double? // 中位分 (可选)
+    var averageScore: Double? // 平均分 (可选)
+}

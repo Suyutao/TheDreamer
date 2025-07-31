@@ -363,3 +363,4 @@ struct AddDataView: View {
     AddDataView(dataType: .practice)
         .modelContainer(for: [PracticeCollection.self, Practice.self, Subject.self])
 }
+
