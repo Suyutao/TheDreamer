@@ -5,6 +5,26 @@
 //  Created by 苏宇韬 on 7/30/25.
 //
 
+// 功能简介：
+// ManageSubjectsView 是一个用于管理学习科目的视图。
+// 它允许用户查看、添加、编辑和删除科目，并可以调整科目的显示顺序。
+// 该视图使用SwiftData进行数据持久化，并使用OSLog进行日志记录。
+
+// 常用名词说明：
+// View: SwiftUI 中的视图协议，用于定义用户界面。
+// struct: Swift 中的结构体，用于定义自定义数据类型。
+// body: View 协议中的计算属性，用于定义视图的层次结构。
+// State: SwiftUI 中的属性包装器，用于管理视图的内部状态。
+// Environment: SwiftUI 中的属性包装器，用于访问环境中的值。
+// Query: SwiftData 中的属性包装器，用于查询数据。
+// Logger: OSLog 框架中的类，用于记录日志信息。
+// NavigationView: SwiftUI 中的视图容器，用于管理导航层次结构。
+// List: SwiftUI 中的视图，用于显示列表数据。
+// ForEach: SwiftUI 中的视图，用于遍历数据并生成视图。
+// Button: SwiftUI 中的视图，用于响应用户点击事件。
+// Sheet: SwiftUI 中的视图，用于以模态方式显示其他视图。
+// Alert: SwiftUI 中的视图，用于显示警告信息。
+
 // 导入SwiftUI框架用于构建用户界面
 // 导入SwiftData框架用于数据持久化
 // 导入OSLog框架用于日志记录
@@ -12,32 +32,40 @@ import SwiftUI
 import SwiftData
 import OSLog
 
-// 定义ManageSubjectsView结构体，遵循View协议
+/// ManageSubjectsView 是一个用于管理学习科目的视图。
+/// 它允许用户查看、添加、编辑和删除科目，并可以调整科目的显示顺序。
 struct ManageSubjectsView: View {
     // MARK: - Properties & State
-    // 创建日志对象
+    
+    /// 创建日志对象，用于记录日志信息。
     private let logger = Logger(subsystem: "com.suyutao.The-Dreamer", category: "ManageSubjectsView")
     
-    // 获取当前的模型上下文，用于数据操作
+    /// 获取当前的模型上下文，用于数据操作。
     @Environment(\.modelContext) private var modelContext
-    // 获取dismiss环境值，用于关闭当前视图
+    
+    /// 获取dismiss环境值，用于关闭当前视图。
     @Environment(\.dismiss) private var dismiss
     // 查询Subject对象，按orderIndex排序
     @Query(sort: \Subject.orderIndex) private var subjects: [Subject]
     
-    // 状态变量，控制编辑科目表单是否显示
+    /// 状态变量，控制编辑科目表单是否显示。
     @State private var isShowingSheet = false
-    // 状态变量，保存正在编辑的科目对象
+    
+    /// 状态变量，保存正在编辑的科目对象。
     @State private var subjectToEdit: Subject?
-    // 状态变量，控制列表的编辑模式
+    
+    /// 状态变量，控制列表的编辑模式。
     @State private var editMode: EditMode = .inactive
-    // 状态变量，控制警告弹窗是否显示
+    
+    /// 状态变量，控制警告弹窗是否显示。
     @State private var showingAlert = false
-    // 状态变量，保存警告弹窗的消息内容
+    
+    /// 状态变量，保存警告弹窗的消息内容。
     @State private var alertMessage = ""
     
     // MARK: - Computed Properties
-    // 视图的主体部分
+    
+    /// 视图的主体部分。
     var body: some View {
         // 使用NavigationView包装内容
         NavigationView {
@@ -113,7 +141,9 @@ struct ManageSubjectsView: View {
     }
 
     // MARK: - Functions
-    // 上移科目函数
+    
+    /// 上移科目函数，将指定科目在列表中的位置向上移动一位。
+    /// - Parameter subject: 要上移的科目对象。
     private func moveUp(_ subject: Subject) {
         logger.info("尝试上移科目: \(subject.name)")
         // 确保当前科目索引大于0
@@ -130,7 +160,8 @@ struct ManageSubjectsView: View {
         logger.info("成功上移科目: \(subject.name)")
     }
 
-    // 下移科目函数
+    /// 下移科目函数，将指定科目在列表中的位置向下移动一位。
+    /// - Parameter subject: 要下移的科目对象。
     private func moveDown(_ subject: Subject) {
         logger.info("尝试下移科目: \(subject.name)")
         // 确保当前科目索引小于科目总数
@@ -147,7 +178,8 @@ struct ManageSubjectsView: View {
         logger.info("成功下移科目: \(subject.name)")
     }
 
-    // 删除科目函数
+    /// 删除科目函数，从列表中删除指定索引的科目。
+    /// - Parameter offsets: 要删除的科目索引集合。
     private func deleteSubject(at offsets: IndexSet) {
         logger.info("尝试删除科目，删除索引: \(offsets)")
         // 遍历要删除的索引集合并删除对应的科目
@@ -158,7 +190,11 @@ struct ManageSubjectsView: View {
         }
     }
     
-    // 保存科目函数
+    /// 保存科目函数，用于保存新创建或编辑的科目信息。
+    /// - Parameters:
+    ///   - name: 科目名称。
+    ///   - score: 科目满分。
+    ///   - editing: 正在编辑的科目对象，如果为nil则表示创建新科目。
     private func save(name: String, score: Double, editing subject: Subject?) {
         if let subject = subject {
             // 编辑现有科目
@@ -177,7 +213,7 @@ struct ManageSubjectsView: View {
         isShowingSheet = false
     }
     
-    // 显示添加表单函数
+    /// 显示添加表单函数，用于显示添加新科目的表单。
     private func showAddSheet() {
         logger.info("显示添加科目表单")
         subjectToEdit = nil
@@ -189,12 +225,11 @@ struct ManageSubjectsView: View {
 // MARK: - Encapsulated Row View
 
 /// [V21] 封装的科目行视图，用于在列表中显示单个科目的信息。
-// 定义SubjectRow结构体，遵循View协议
 struct SubjectRow: View {
-    // 接收一个Subject对象
+    /// 接收一个Subject对象
     let subject: Subject
     
-    // 视图的主体部分
+    /// 视图的主体部分
     var body: some View {
         // 使用HStack水平排列内容
         HStack {
