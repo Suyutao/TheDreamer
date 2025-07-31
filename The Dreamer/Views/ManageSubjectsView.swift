@@ -7,11 +7,16 @@
 
 // 导入SwiftUI框架用于构建用户界面
 // 导入SwiftData框架用于数据持久化
+// 导入OSLog框架用于日志记录
 import SwiftUI
 import SwiftData
+import OSLog
 
 // 定义ManageSubjectsView结构体，遵循View协议
 struct ManageSubjectsView: View {
+    // 创建日志对象
+    private let logger = Logger(subsystem: "com.suyutao.The-Dreamer", category: "ManageSubjectsView")
+    
     // 获取当前的模型上下文，用于数据操作
     @Environment(\.modelContext) private var modelContext
     // 获取dismiss环境值，用于关闭当前视图
@@ -108,44 +113,63 @@ struct ManageSubjectsView: View {
     // MARK: - Functions
     // 上移科目函数
     private func moveUp(_ subject: Subject) {
+        logger.info("尝试上移科目: \(subject.name)")
         // 确保当前科目索引大于0
-        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex > 0 else { return }
+        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex > 0 else { 
+            logger.warning("无法上移科目 \(subject.name): 已经是第一个科目")
+            return 
+        }
         // 获取要交换的科目
         let subjectToSwap = subjects[currentIndex - 1]
         // 交换两个科目的orderIndex
         let tempOrder = subject.orderIndex
         subject.orderIndex = subjectToSwap.orderIndex
         subjectToSwap.orderIndex = tempOrder
+        logger.info("成功上移科目: \(subject.name)")
     }
 
     // 下移科目函数
     private func moveDown(_ subject: Subject) {
+        logger.info("尝试下移科目: \(subject.name)")
         // 确保当前科目索引小于科目总数
-        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex < subjects.count - 1 else { return }
+        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex < subjects.count - 1 else { 
+            logger.warning("无法下移科目 \(subject.name): 已经是最后一个科目")
+            return 
+        }
         // 获取要交换的科目
         let subjectToSwap = subjects[currentIndex + 1]
         // 交换两个科目的orderIndex
         let tempOrder = subject.orderIndex
         subject.orderIndex = subjectToSwap.orderIndex
         subjectToSwap.orderIndex = tempOrder
+        logger.info("成功下移科目: \(subject.name)")
     }
 
     // 删除科目函数
     private func deleteSubject(at offsets: IndexSet) {
+        logger.info("尝试删除科目，删除索引: \(offsets)")
         // 遍历要删除的索引集合并删除对应的科目
-        offsets.forEach { modelContext.delete(subjects[$0]) }
+        offsets.forEach { 
+            let subject = subjects[$0]
+            logger.info("删除科目: \(subject.name)")
+            modelContext.delete(subjects[$0]) 
+        }
     }
     
     // 保存科目函数
     private func save(name: String, score: Double, editing subject: Subject?) {
         if let subject = subject {
             // 编辑现有科目
+            logger.info("编辑现有科目: \(subject.name)")
             subject.name = name
             subject.totalScore = score
+            logger.info("成功编辑科目: \(subject.name), 新名称: \(name), 新分数: \(score)")
         } else {
             // 创建新科目
+            logger.info("创建新科目，名称: \(name), 分数: \(score)")
             let newSubject = Subject(name: name, totalScore: score, orderIndex: subjects.count)
             modelContext.insert(newSubject)
+            logger.info("成功创建新科目: \(name)")
         }
         // 关闭sheet
         isShowingSheet = false
@@ -153,6 +177,7 @@ struct ManageSubjectsView: View {
     
     // 显示添加表单函数
     private func showAddSheet() {
+        logger.info("显示添加科目表单")
         subjectToEdit = nil
         isShowingSheet = true
     }
