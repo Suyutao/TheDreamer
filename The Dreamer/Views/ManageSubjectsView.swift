@@ -14,6 +14,7 @@ import OSLog
 
 // 定义ManageSubjectsView结构体，遵循View协议
 struct ManageSubjectsView: View {
+    // MARK: - Properties & State
     // 创建日志对象
     private let logger = Logger(subsystem: "com.suyutao.The-Dreamer", category: "ManageSubjectsView")
     
@@ -34,7 +35,8 @@ struct ManageSubjectsView: View {
     @State private var showingAlert = false
     // 状态变量，保存警告弹窗的消息内容
     @State private var alertMessage = ""
-
+    
+    // MARK: - Computed Properties
     // 视图的主体部分
     var body: some View {
         // 使用NavigationView包装内容
