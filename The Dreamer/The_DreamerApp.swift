@@ -14,7 +14,14 @@ struct TheDreamerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Subject.self,
-            PaperTemplate.self
+            PaperTemplate.self,
+            Exam.self,  // 添加 Exam 模型
+            Practice.self,  // 添加 Practice 模型
+            PracticeCollection.self,  // 添加 PracticeCollection 模型
+            Question.self,  // 添加 Question 模型
+            QuestionTemplate.self,  // 添加 QuestionTemplate 模型
+            TestMethod.self,  // 添加 TestMethod 模型
+            QuestionType.self  // 添加 QuestionType 模型
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

@@ -14,6 +14,9 @@ struct AnalysisView: View {
     // [V39] 使用@Query获取所有Exam记录，并按日期倒序排序
     @Query(sort: \Exam.date, order: .reverse) private var exams: [Exam]
     
+    // [V1] 添加状态变量来存储要添加的数据类型
+    @State private var addableDataType: AddableDataType = .exam
+    
     @State private var showingAddDataSheet = false
     @State private var showingManageSheet = false // 新增：控制管理科目与模板sheet的显示
     
