@@ -17,7 +17,7 @@ struct ManageSubjectsView: View {
     // 获取dismiss环境值，用于关闭当前视图
     @Environment(\.dismiss) private var dismiss
     // 查询Subject对象，按orderIndex排序
-    @Query(sort: \.Subject.orderIndex) private var subjects: [Subject]
+    @Query(sort: \Subject.orderIndex) private var subjects: [Subject]
     
     // 状态变量，控制编辑科目表单是否显示
     @State private var isShowingSheet = false
