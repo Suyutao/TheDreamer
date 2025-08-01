@@ -38,11 +38,13 @@ struct AnalysisView: View {
     // order: .reverse表示倒序排列（最新的在前）
     @Query(sort: \Exam.date, order: .reverse) private var exams: [Exam]
     
+    // 添加状态变量来控制是否按科目分组
+    @State private var groupBySubject = false
+    
     // [V1] 添加状态变量来存储要添加的数据类型
     // 定义一个状态变量，用于存储用户选择要添加的数据类型（考试或练习）
     // @State是SwiftUI提供的属性包装器，用于管理视图的状态
-    // addableDataType的初始值设置为.exam（考试）
-    @State private var addableDataType: AddableDataType = .exam
+    @State private var addableDataType: AddableDataType? = nil
     
     // 定义一个状态变量，用于控制添加数据界面是否显示
     // showingAddDataSheet的初始值为false，表示默认不显示
@@ -77,17 +79,44 @@ struct AnalysisView: View {
                     // [V39] 列表显示所有成绩
                     // 如果有考试记录，则显示在列表中
                     // List用于显示一组数据
-                    List {
-                        // 遍历所有考试记录，为每条记录创建一个行视图
-                        // ForEach是SwiftUI中的循环结构，用于遍历数组
-                        ForEach(exams) { exam in
-                            // 显示考试记录的行视图
-                            // ExamRowView是在当前文件中定义的组件
-                            ExamRowView(exam: exam)
+                    if groupBySubject {
+                        // 按科目分组显示
+                        List {
+                            // 先获取所有有考试的科目
+                            let subjects = Array(Set(exams.compactMap { $0.subject })).sorted { $0.name < $1.name }
+                            
+                            ForEach(subjects) { subject in
+                                Section(header: Text(subject.name)) {
+                                    // 获取该科目的所有考试
+                                    let subjectExams = exams.filter { $0.subject?.id == subject.id }
+                                    
+                                    ForEach(subjectExams) { exam in
+                                        // 显示考试记录的行视图
+                                        // ExamRowView是在当前文件中定义的组件
+                                        ExamRowView(exam: exam)
+                                    }
+                                    // 为列表项添加删除功能
+                                    // .onDelete是SwiftUI提供的修饰符，用于处理删除操作
+                                    .onDelete { indices in
+                                        deleteExams(at: indices, in: subjectExams)
+                                    }
+                                }
+                            }
                         }
-                        // 为列表项添加删除功能
-                        // .onDelete是SwiftUI提供的修饰符，用于处理删除操作
-                        .onDelete(perform: deleteExam)
+                    } else {
+                        // 按时间排序显示（原有逻辑）
+                        List {
+                            // 遍历所有考试记录，为每条记录创建一个行视图
+                            // ForEach是SwiftUI中的循环结构，用于遍历数组
+                            ForEach(exams) { exam in
+                                // 显示考试记录的行视图
+                                // ExamRowView是在当前文件中定义的组件
+                                ExamRowView(exam: exam)
+                            }
+                            // 为列表项添加删除功能
+                            // .onDelete是SwiftUI提供的修饰符，用于处理删除操作
+                            .onDelete(perform: deleteExam)
+                        }
                     }
                 }
             }
@@ -107,9 +136,9 @@ struct AnalysisView: View {
                         // 这里将放置我们V20讨论过的视图切换选项
                         // 按科目分组查看数据的按钮（功能待实现）
                         // Button用于创建一个可点击的按钮
-                        Button("按科目分组", action: {})
+                        Button("按科目分组", action: { groupBySubject = true })
                         // 按时间排序查看数据的按钮（功能待实现）
-                        Button("按时间排序", action: {})
+                        Button("按时间排序", action: { groupBySubject = false })
                         
                         // 在菜单中添加分割线
                         // Divider用于在菜单中添加一条分隔线
@@ -127,32 +156,32 @@ struct AnalysisView: View {
                 }
                 
                 // 右上角的添加数据菜单
-                // placement: .primaryAction表示放置在右上角的主要操作位置
-                ToolbarItem(placement: .primaryAction) {
-                    // 创建一个下拉菜单
-                    Menu {
-                        // 添加考试的按钮
-                        // 当用户点击此按钮时，设置数据类型为考试并显示添加界面
-                        Button("添加考试", action: {
-                            // 设置要添加的数据类型为考试
-                            addableDataType = .exam
-                            // 显示添加数据界面
-                            showingAddDataSheet = true
-                        })
-                        
-                        // 添加练习的按钮
-                        // 当用户点击此按钮时，设置数据类型为练习并显示添加界面
-                        Button("添加练习", action: {
-                            // 设置要添加的数据类型为练习
-                            addableDataType = .practice
-                            // 显示添加数据界面
-                            showingAddDataSheet = true
-                        })
-                    } label: {
-                        // 菜单的文本标签
-                        Text("添加数据")
+            // placement: .primaryAction表示放置在右上角的主要操作位置
+            ToolbarItem(placement: .primaryAction) {
+                // 创建一个下拉菜单
+                Menu {
+                    // 添加考试的按钮
+                    // 当用户点击此按钮时，设置数据类型为考试并显示添加界面
+                    Button("添加考试") {
+                        // 先设置数据类型
+                        addableDataType = .exam
+                        // 延迟显示sheet确保状态更新
+                        DispatchQueue.main.async { showingAddDataSheet = true }
                     }
+                    
+                    // 添加练习的按钮
+                    // 当用户点击此按钮时，设置数据类型为练习并显示添加界面
+                    Button("添加练习") {
+                        // 先设置数据类型
+                        addableDataType = .practice
+                        // 延迟显示sheet确保状态更新
+                        DispatchQueue.main.async { showingAddDataSheet = true }
+                    }
+                } label: {
+                    // 菜单的文本标签
+                    Text("添加数据")
                 }
+            }
             }
             // 添加数据界面的弹窗
             // sheet用于以弹窗形式显示视图
@@ -161,7 +190,7 @@ struct AnalysisView: View {
                 // [V39] 关键：为弹出的Sheet注入modelContext环境
                 // 显示添加数据界面，并传递数据类型和数据存储上下文
                 // AddDataView是在其他文件中定义的视图
-                AddDataView(dataType: addableDataType)
+                AddDataView(dataType: $addableDataType)
                     // 为弹出的视图注入modelContext环境变量
                     .environment(\.modelContext, modelContext)
             }
@@ -190,6 +219,15 @@ struct AnalysisView: View {
             // modelContext.delete用于删除数据
             // exams[index]获取指定索引的考试记录
             modelContext.delete(exams[index])
+        }
+    }
+    
+    // 新增：删除特定科目下的考试记录
+    private func deleteExams(at offsets: IndexSet, in subjectExams: [Exam]) {
+        for index in offsets {
+            if let examIndex = exams.firstIndex(where: { $0.id == subjectExams[index].id }) {
+                modelContext.delete(exams[examIndex])
+            }
         }
     }
 }

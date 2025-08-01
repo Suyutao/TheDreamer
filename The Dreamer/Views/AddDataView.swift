@@ -24,6 +24,10 @@ import SwiftUI
 // 导入用于数据存储和管理的SwiftData框架
 import SwiftData
 
+// 导入自定义UI组件
+// CommonComponents包含FormHeader等可复用组件
+
+
 // 定义一个枚举类型，用来区分是添加考试还是练习
 // enum是一种特殊的数据类型，它定义了一组相关的值
 // AddableDataType表示可添加的数据类型
@@ -38,6 +42,7 @@ enum AddableDataType {
 // 定义一个结构体，表示添加数据的视图界面
 // struct是Swift中的一种数据结构，用于封装相关的属性和功能
 // AddDataView遵循View协议，表示它是一个界面组件
+// 定义一个结构体，表示添加数据的视图界面
 struct AddDataView: View {
     
     // MARK: - Properties & State
@@ -58,7 +63,7 @@ struct AddDataView: View {
     // 定义一个常量，表示当前要添加的数据类型（考试或练习）
     // let表示这是一个常量（不可变的）
     // dataType是在创建视图时传入的参数
-    let dataType: AddableDataType
+    @Binding var dataType: AddableDataType?
     
     // UI State（用户界面状态变量）
     // @State是属性包装器，用于管理视图的状态
@@ -95,11 +100,13 @@ struct AddDataView: View {
     // 从数据库中查询所有科目，并按名称排序
     // sort: \Subject.name表示按Subject结构体的name属性排序
     // private var subjects: [Subject]表示定义一个私有变量subjects，类型为Subject数组
-    @Query(sort: \Subject.name) private var subjects: [Subject]
+    // 从数据库中查询所有科目，并按名称排序
+    @Query(sort: [SortDescriptor(\Subject.name)]) private var subjects: [Subject]
     
     // 从数据库中查询所有练习类别，并按名称排序
     // \PracticeCollection.name表示按PracticeCollection结构体的name属性排序
-    @Query(sort: \PracticeCollection.name) private var practiceCollections: [PracticeCollection]
+    // 从数据库中查询所有练习类别，并按名称排序
+    @Query(sort: [SortDescriptor(\PracticeCollection.name)]) private var practiceCollections: [PracticeCollection]
 
     // MARK: - Main Body
     // 定义视图的主要内容
@@ -127,15 +134,19 @@ struct AddDataView: View {
                 
                 // 根据数据类型显示不同的表单内容
                 // switch是条件分支语句，根据dataType的值执行不同的代码块
-                switch dataType {
-                case .exam:
-                    // 如果是考试，则显示考试表单
-                    // examForm是在下面定义的计算属性
-                    examForm
-                case .practice:
-                    // 如果是练习，则显示练习表单
-                    // practiceForm是在下面定义的计算属性
-                    practiceForm
+                if let type = dataType {
+                    switch type {
+                    case .exam:
+                        // 如果是考试，则显示考试表单
+                        // examForm是在下面定义的计算属性
+                        examForm
+                    case .practice:
+                        // 如果是练习，则显示练习表单
+                        // practiceForm是在下面定义的计算属性
+                        practiceForm
+                    }
+                } else {
+                    Text("请选择数据类型")
                 }
             }
             // 设置导航栏标题
@@ -271,17 +282,21 @@ struct AddDataView: View {
         
         // 根据数据类型进行不同的验证
         // switch是条件分支语句
-        switch dataType {
-        case .exam:
-            // 对于考试，需要填写考试名称和选择科目
-            // ||是逻辑或运算符，只要有一个条件为true，整个表达式就为true
-            // examName.isEmpty检查考试名称是否为空
-            // selectedSubject == nil检查是否没有选择科目
-            return examName.isEmpty || selectedSubject == nil
-        case .practice:
-            // 对于练习，需要选择练习类别
-            // selectedPracticeCollection == nil检查是否没有选择练习类别
-            return selectedPracticeCollection == nil
+        if let type = dataType {
+            switch type {
+            case .exam:
+                // 对于考试，需要填写考试名称和选择科目
+                // ||是逻辑或运算符，只要有一个条件为true，整个表达式就为true
+                // examName.isEmpty检查考试名称是否为空
+                // selectedSubject == nil检查是否没有选择科目
+                return examName.isEmpty || selectedSubject == nil
+            case .practice:
+                // 对于练习，需要选择练习类别
+                // selectedPracticeCollection == nil检查是否没有选择练习类别
+                return selectedPracticeCollection == nil
+            }
+        } else {
+            return true
         }
     }
     
@@ -302,46 +317,32 @@ struct AddDataView: View {
         }
         
         // 根据数据类型执行不同的保存操作
-        switch dataType {
-        case .exam:
-            // 保存考试数据
+        if let type = dataType {
+            switch type {
+            case .exam:
+                // 保存考试数据
+                
+                // 确保已选择科目
+                guard let subject = selectedSubject else { return }
+                
+                // 创建新的考试实例
+                let newExam = Exam(name: examName, date: date, totalScore: scoreValue, subject: subject)
+                modelContext.insert(newExam)
+                
+            case .practice:
+                // 保存练习数据
+                
+                // 确保已选择练习类别
+                guard let collection = selectedPracticeCollection else { return }
+                
+                // 创建新的练习实例
+                let newPractice = Practice(date: date, score: scoreValue, collection: collection)
+                modelContext.insert(newPractice)
+            }
             
-            // 确保已选择科目
-            // guard let subject = selectedSubject else { return }确保selectedSubject不为nil
-            guard let subject = selectedSubject else { return }
-            
-            // 创建新的考试实例
-            // Exam是数据模型，在Models.swift中定义
-            // name: examName将考试名称传入
-            // date: date将日期传入
-            // totalScore: scoreValue将成绩传入
-            // subject: subject将科目传入
-            let newExam = Exam(name: examName, date: date, totalScore: scoreValue, subject: subject)
-            
-            // 将新考试插入到数据存储中
-            // modelContext.insert用于将数据插入到数据库
-            modelContext.insert(newExam)
-            
-        case .practice:
-            // 保存练习数据
-            
-            // 确保已选择练习类别
-            guard let collection = selectedPracticeCollection else { return }
-            
-            // 创建新的练习实例
-            // Practice是数据模型，在Models.swift中定义
-            // date: date将日期传入
-            // score: scoreValue将成绩传入
-            // collection: collection将练习类别传入
-            let newPractice = Practice(date: date, score: scoreValue, collection: collection)
-            
-            // 将新练习插入到数据存储中
-            modelContext.insert(newPractice)
+            // 关闭当前视图
+            dismiss()
         }
-        
-        // 关闭当前视图
-        // dismiss()是调用Environment中的关闭功能
-        dismiss()
     }
 }
 
@@ -354,13 +355,13 @@ struct AddDataView: View {
     // [V18] 必须提供所有相关的模型给容器，以便预览正常工作
     // AddDataView(dataType: .exam)创建一个添加考试的视图实例
     // .modelContainer(for: [Subject.self, Exam.self])为预览提供数据模型容器
-    AddDataView(dataType: .exam)
+    AddDataView(dataType: Binding.constant(.exam))
         .modelContainer(for: [Subject.self, Exam.self])
 }
 
 // 练习添加界面的预览
 #Preview("添加练习") {
-    AddDataView(dataType: .practice)
+    AddDataView(dataType: Binding.constant(.practice))
         .modelContainer(for: [PracticeCollection.self, Practice.self, Subject.self])
 }
 
