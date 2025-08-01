@@ -31,13 +31,7 @@ import SwiftData
 // 定义一个枚举类型，用来区分是添加考试还是练习
 // enum是一种特殊的数据类型，它定义了一组相关的值
 // AddableDataType表示可添加的数据类型
-enum AddableDataType {
-    // 表示添加考试的选项
-    // case是枚举中的一个值
-    case exam
-    // 表示添加练习的选项
-    case practice
-}
+
 
 // 定义一个结构体，表示添加数据的视图界面
 // struct是Swift中的一种数据结构，用于封装相关的属性和功能
