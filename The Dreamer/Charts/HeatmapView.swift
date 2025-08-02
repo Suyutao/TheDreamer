@@ -5,12 +5,48 @@
 //  Created by AI Assistant
 //
 
-// 功能简介：
-// 热力图组件 - 分析特定题型/考法的长期能力变化趋势
-// X轴：时间（月份/周），Y轴：题型/考法/科目
-// 颜色深浅：表示该时间段内该维度的表现水平（得分率）
-// 可以直观地看见哪些知识点在哪个时间段表现较好/较差
-// 支持多种热力图模式：题型热力图、考法热力图、科目热力图
+// MARK: - 功能简介与使用说明
+
+/// # HeatmapView (热力图组件)
+///
+/// **功能简介:**
+/// 用于分析特定维度（如题型、考法、科目）在不同时间粒度下的能力变化趋势。
+/// - **X轴:** 时间（按周、月、季度、年等粒度）
+/// - **Y轴:** 分析维度（题型、考法、科目）
+/// - **颜色深浅:** 表示该时间段内该维度的表现水平（如得分率、平均分、频次、进步幅度）。
+///
+/// **典型应用场景:**
+/// - 识别哪些知识点在特定时间段表现较好或较差。
+/// - 追踪长期学习进步或退步的趋势。
+/// - 评估不同学习策略的效果。
+///
+/// **如何使用:**
+/// 1. **准备数据:** 创建 `[HeatmapDataPoint]` 数组。
+///    ```swift
+///    // 示例数据：题型得分率热力图
+///    let heatmapData: [HeatmapDataPoint] = [
+///        .init(xValue: "2023-01", yValue: "选择题", intensity: 85, count: 10, averageScore: 8.5, totalScore: 10, date: Date(), details: ""),
+///        .init(xValue: "2023-01", yValue: "填空题", intensity: 70, count: 8, averageScore: 7.0, totalScore: 10, date: Date(), details: ""),
+///        .init(xValue: "2023-02", yValue: "选择题", intensity: 90, count: 12, averageScore: 9.0, totalScore: 10, date: Date(), details: "")
+///    ]
+///    ```
+///
+/// 2. **创建视图实例:**
+///    ```swift
+///    HeatmapView(
+///        dataPoints: heatmapData,
+///        heatmapType: .questionType,       // 按题型分析
+///        timeGranularity: .month,         // 按月显示
+///        intensityCalculation: .scoreRate,  // 颜色表示得分率
+///        title: "题型能力变化",
+///        showGrid: true,
+///        showValues: false
+///    )
+///    .frame(height: 400)
+///    ```
+///
+/// 3. **数据来源:** 通常从 SwiftData 模型(如 `Exam` 或 `Question`)中提取数据并转换为 `HeatmapDataPoint`。
+///    组件会根据 `intensityCalculation` 自动计算颜色深浅。
 
 import SwiftUI
 import Charts

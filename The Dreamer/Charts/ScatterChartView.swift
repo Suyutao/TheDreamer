@@ -5,12 +5,52 @@
 //  Created by AI Assistant
 //
 
-// 功能简介：
-// 散点密度图组件 - 分析分数绝对值与得分率的关系
-// X轴：分数绝对值，Y轴：得分率，颜色：科目/题型
-// 可以直观地看见一次考试或多次考试的分数分布位置
-// 左下角：得分率小且分数少，左上角：得分率高但分数少
-// 右上角：全能王（高分高得分率），右下角：分数高但得分率低
+// MARK: - 功能简介与使用说明
+
+/// # ScatterChartView (散点密度图组件)
+///
+/// **功能简介:**
+/// 用于分析分数绝对值与得分率关系的专业图表，特点包括：
+/// - X轴：分数绝对值
+/// - Y轴：得分率
+/// - 颜色区分：科目/题型/考试
+/// - 可选趋势线：线性/多项式/平均线
+/// - 密度区域显示：直观展示数据分布密度
+///
+/// **典型应用场景:**
+/// - 诊断考试中各题型的得分效率
+/// - 分析不同科目的得分稳定性
+/// - 识别异常题目（高分低得分率或低分高得分率）
+/// - 追踪学习进步趋势
+///
+/// **如何使用:**
+/// 1. **准备数据:** 创建 `[ScatterDataPoint]` 数组
+///    ```swift
+///    // 示例数据：单次考试各题目
+///    let scatterData: [ScatterDataPoint] = [
+///        .init(absoluteScore: 5, scoreRate: 0.8, category: "数学", color: .blue, 
+///              questionNumber: "1", examName: "期中考", date: Date(), totalScore: 5, 
+///              description: "选择题"),
+///        .init(absoluteScore: 10, scoreRate: 0.6, category: "数学", color: .blue,
+///              questionNumber: "2", examName: "期中考", date: Date(), totalScore: 15,
+///              description: "填空题")
+///    ]
+///    ```
+///
+/// 2. **创建视图实例:**
+///    ```swift
+///    ScatterChartView(
+///        dataPoints: scatterData,
+///        categoryType: .questionType, // 按题型分类
+///        trendLineType: .linear,      // 线性趋势线
+///        title: "题目得分效率分析",
+///        showDensityRegions: true     // 显示密度区域
+///    )
+///    .frame(height: 400)
+///    ```
+///
+/// 3. **数据来源:** 通常从 SwiftData 模型(如 `Exam` 或 `Question`)中提取数据并转换为 `ScatterDataPoint`。
+///    组件会自动计算得分率并处理趋势线。
 
 import SwiftUI
 import Charts

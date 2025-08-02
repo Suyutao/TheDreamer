@@ -5,10 +5,62 @@
 //  Created by AI Assistant
 //
 
-// 功能简介：
-// 占比图组件 - 包含扇形图和进度图
-// 直接看到某一次考试得分率，各科目占比，各题型占比等
-// 适合查看任意一次考试，或者最近一次，或者统计全时间尺度上的平均占比
+// MARK: - 功能简介与使用说明
+
+/// # PieChartView (占比图组件)
+///
+/// **功能简介:**
+/// 可视化数据占比关系的图表组件，包含三种类型：
+/// - **扇形图(Pie):** 展示各部分占总体的比例
+/// - **环形图(Donut):** 中心留空的扇形图，适合强调占比关系
+/// - **进度图(Progress):** 单一部分的占比展示，适合显示完成度
+///
+/// **典型应用场景:**
+/// - 单次考试的得分率分析
+/// - 各科目分数占比
+/// - 各题型得分占比
+/// - 自定义数据占比分析
+///
+/// **如何使用:**
+/// 1. **准备数据:** 创建 `[PieChartDataPoint]` 数组
+///    ```swift
+///    // 示例数据：科目占比
+///    let subjectData: [PieChartDataPoint] = [
+///        .init(category: "数学", value: 90, totalValue: 100, color: .blue, description: "数学成绩"),
+///        .init(category: "语文", value: 85, totalValue: 100, color: .green, description: "语文成绩"),
+///        .init(category: "英语", value: 80, totalValue: 100, color: .red, description: "英语成绩")
+///    ]
+///    
+///    // 示例数据：得分率
+///    let scoreRateData: [PieChartDataPoint] = [
+///        .init(category: "得分", value: 75, totalValue: 100, color: .blue, description: "本次考试得分率")
+///    ]
+///    ```
+///
+/// 2. **创建视图实例:**
+///    ```swift
+///    // 扇形图示例
+///    PieChartView(
+///        dataPoints: subjectData,
+///        chartType: .pie,
+///        dataType: .subjectRatio,
+///        title: "科目分数占比"
+///    )
+///    .frame(width: 300, height: 300)
+///    
+///    // 进度图示例
+///    PieChartView(
+///        dataPoints: scoreRateData,
+///        chartType: .progress,
+///        dataType: .scoreRate,
+///        title: "本次考试得分率",
+///        showPercentageLabels: true
+///    )
+///    .frame(width: 200, height: 200)
+///    ```
+///
+/// 3. **数据来源:** 通常从 SwiftData 模型(如 `Exam` 或 `Question`)中提取数据并转换为 `PieChartDataPoint`。
+///    组件会自动计算各部分占比并显示百分比标签。
 
 import SwiftUI
 import Charts

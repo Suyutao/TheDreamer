@@ -5,10 +5,55 @@
 //  Created by AI Assistant
 //
 
-// 功能简介：
-// 折线图组件 - 显示分数随时间变化的趋势
-// 支持多条线：我的分数、班级总分、班级均分、目标分数（虚线）
-// 可传参数调整科目、时间范围、显示的线条、预设风格等
+// MARK: - 功能简介与使用说明
+
+/// # LineChartView (折线图组件)
+///
+/// **功能简介:**
+/// 显示分数随时间变化的趋势，支持多条线（我的分数、班级总分、班级均分、目标分数）叠加，
+/// 可通过参数调整科目、时间范围、显示的线条类型和预设风格。
+///
+/// **如何使用:**
+/// 1.  **准备数据:** 创建 `[ChartDataPoint]` 数组，每个 `ChartDataPoint` 包含日期、分数、总分、考试名称、科目和线条类型。
+///     ```swift
+///     let myDataPoints: [ChartDataPoint] = [
+///         .init(date: Date.from(year: 2023, month: 1, day: 1), score: 85, totalScore: 100, examName: "期中考", subject: "数学", type: .myScore),
+///         .init(date: Date.from(year: 2023, month: 2, day: 1), score: 90, totalScore: 100, examName: "期末考", subject: "数学", type: .myScore),
+///         .init(date: Date.from(year: 2023, month: 1, day: 1), score: 78, totalScore: 100, examName: "期中考", subject: "数学", type: .classAverage)
+///     ]
+///     ```
+///
+/// 2.  **创建视图实例:** 将准备好的数据传入 `LineChartView` 的初始化方法。
+///     ```swift
+///     LineChartView(
+///         dataPoints: myDataPoints,
+///         selectedSubject: "数学", // 可选：按科目过滤
+///         dateRange: Date.from(year: 2023, month: 1, day: 1)...Date.from(year: 2023, month: 12, day: 31), // 可选：按时间范围过滤
+///         visibleLines: [.myScore, .classAverage], // 可选：选择要显示的线条类型
+///         chartStyle: .smooth, // 可选：选择图表风格 (.smooth 或 .linear)
+///         showYAxisAsPercentage: true // 可选：Y轴是否显示为百分比
+///     )
+///     .frame(height: 300) // 设置图表高度
+///     ```
+///
+/// 3.  **数据来源:** 通常，`ChartDataPoint` 数据会从您的 SwiftData 模型（如 `Exam` 或 `Practice`）中提取和转换而来。
+///     例如，从 `Exam` 模型中获取我的分数数据点：
+///     ```swift
+///     @Query var exams: [Exam]
+///     var myScoreDataPoints: [ChartDataPoint] {
+///         exams.map { exam in
+///             ChartDataPoint(
+///                 date: exam.date,
+///                 score: exam.score,
+///                 totalScore: exam.totalScore,
+///                 examName: exam.name,
+///                 subject: exam.subject?.name ?? "未知科目",
+///                 type: .myScore
+///             )
+///         }
+///     }
+///     // 然后在视图中使用：LineChartView(dataPoints: myScoreDataPoints)
+///     ```
 
 import SwiftUI
 import Charts

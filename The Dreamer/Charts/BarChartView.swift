@@ -5,10 +5,55 @@
 //  Created by AI Assistant
 //
 
-// 功能简介：
-// 柱状图组件 - 包含单科分布和得分占比叠层柱状图
-// 1. 单科分布：显示一次大考中各科目的分数/得分率
-// 2. 得分占比叠层柱状图：显示每次大考中每门科目贡献的分数比例
+// MARK: - 功能简介与使用说明
+
+/// # BarChartView (柱状图组件)
+///
+/// **功能简介:**
+/// 包含单科分布和得分占比叠层柱状图两种类型。
+/// - **单科分布:** 显示一次考试中各科目的分数或得分率。
+/// - **得分占比叠层图:** 显示历次考试中每门科目贡献的分数比例。
+///
+/// **如何使用:**
+/// 1.  **准备数据:** 创建 `[BarChartDataPoint]` 数组。每个 `BarChartDataPoint` 包含类别（如科目名或日期）、值、总值、子类别（叠层图用）、颜色、考试名称和日期。
+///     ```swift
+///     // 示例数据：单科分布
+///     let singleSubjectData: [BarChartDataPoint] = [
+///         .init(category: "数学", value: 90, totalValue: 100, subcategory: nil, color: .blue, examName: "期中考", date: Date()),
+///         .init(category: "语文", value: 85, totalValue: 100, subcategory: nil, color: .green, examName: "期中考", date: Date())
+///     ]
+///
+///     // 示例数据：得分占比叠层图
+///     let stackedData: [BarChartDataPoint] = [
+///         .init(category: "2023-01-01", value: 50, totalValue: 100, subcategory: "数学", color: .red, examName: "期中考", date: Date()),
+///         .init(category: "2023-01-01", value: 30, totalValue: 100, subcategory: "语文", color: .blue, examName: "期中考", date: Date()),
+///         .init(category: "2023-03-01", value: 60, totalValue: 100, subcategory: "数学", color: .red, examName: "期末考", date: Date()),
+///         .init(category: "2023-03-01", value: 25, totalValue: 100, subcategory: "语文", color: .blue, examName: "期末考", date: Date())
+///     ]
+///     ```
+///
+/// 2.  **创建视图实例:**
+///     - **单科分布图:**
+///       ```swift
+///       BarChartView.singleSubjectDistributionChart(
+///           exams: myExams, // 从 SwiftData 查询到的 Exam 数组
+///           examName: "期中考",
+///           displayMode: .absoluteScore // 或 .percentage
+///       )
+///       .frame(height: 300)
+///       ```
+///     - **得分占比叠层图:**
+///       ```swift
+///       BarChartView.stackedScoreContributionChart(
+///           exams: myExams, // 从 SwiftData 查询到的 Exam 数组
+///           displayMode: .percentage // 或 .absoluteScore
+///       )
+///       .frame(height: 300)
+///       ```
+///
+/// 3.  **数据来源:** 通常，`BarChartDataPoint` 数据会从您的 SwiftData 模型（如 `Exam`）中提取和转换而来。
+///     `BarChartView` 提供了便利构造器 `singleSubjectDistributionChart` 和 `stackedScoreContributionChart`，
+///     可以直接传入 `[Exam]` 数组来生成图表数据。
 
 import SwiftUI
 import Charts
