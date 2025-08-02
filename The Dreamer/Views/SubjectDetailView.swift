@@ -12,7 +12,11 @@ struct SubjectDetailView: View {
     let subject: Subject
     
     var body: some View {
-        Text("科目详情: \(subject.name)")
-            .navigationTitle(subject.name)
+        EmptyStateView(
+            iconName: "book.fill",
+            title: "科目详情开发中",
+            message: "\(subject.name) 的详细功能正在开发中，敬请期待更多精彩内容。"
+        )
+        .navigationTitle(subject.name)
     }
 }
