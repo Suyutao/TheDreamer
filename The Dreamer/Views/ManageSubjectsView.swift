@@ -112,8 +112,6 @@ struct ManageSubjectsView: View {
                     }
                 }
             }
-            // 设置导航标题
-            .navigationTitle("管理科目")
             // 设置工具栏内容
             .toolbar {
                 // 取消按钮，用于关闭当前视图

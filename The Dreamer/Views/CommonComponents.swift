@@ -41,23 +41,21 @@ struct FormHeader: View {
                 // 设置图标大小为40点
                 .font(.system(size: 40))
                 // 设置图标颜色为白色
-                .foregroundStyle(.white)
+                .foregroundStyle(iconColor.gradient)
                 // 为图标添加内边距
                 .padding()
                 // 为图标添加圆形背景，背景色为指定的颜色渐变
-                .background(Circle().fill(iconColor.gradient))
+                .background(Circle().fill(.background.tertiary))
             
             // 显示标题文本
             Text(title)
                 // 设置字体为标题2号并加粗
-                .font(.title2).bold()
+                .font(.title).bold()
         }
         // 设置组件宽度占满可用空间
         .frame(maxWidth: .infinity)
         // 设置列表行背景为透明
         .listRowBackground(Color.clear)
-        // 在垂直方向上添加内边距
-        .padding(.vertical)
     }
 }
 

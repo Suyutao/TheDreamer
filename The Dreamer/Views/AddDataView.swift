@@ -143,12 +143,6 @@ struct AddDataView: View {
                     Text("请选择数据类型")
                 }
             }
-            // 设置导航栏标题
-            // navigationTitle是下面定义的计算属性
-            .navigationTitle(navigationTitle)
-            // 设置导航栏标题显示模式
-            // .inline表示标题显示在导航栏内
-            .navigationBarTitleDisplayMode(.inline)
             // 添加工具栏按钮
             // toolbar用于在导航栏上添加额外的按钮
             .toolbar {
@@ -160,18 +154,18 @@ struct AddDataView: View {
                     // Button用于创建一个可点击的按钮
                     // "保存"是按钮显示的文本
                     // action: saveData表示点击按钮时执行saveData函数
-                    Button("保存", action: saveData)
-                        // 根据表单验证结果决定按钮是否可用
-                        // .disabled是修饰符，用于控制视图是否禁用
-                        // isSaveButtonDisabled是下面定义的计算属性
-                        .disabled(isSaveButtonDisabled)
+                    Button("保存", systemImage: "checkmark", role: .confirm) { saveData() }
+                    // 根据表单验证结果决定按钮是否可用
+                    // .disabled是修饰符，用于控制视图是否禁用
+                    // isSaveButtonDisabled是下面定义的计算属性
+                    .disabled(isSaveButtonDisabled)
                 }
                 // 在左侧添加取消按钮
                 // placement: .cancellationAction表示放置在左侧取消位置
                 ToolbarItem(placement: .cancellationAction) {
                     // 创建取消按钮，点击时关闭当前视图
                     // dismiss()是调用Environment中的关闭功能
-                    Button("取消") { dismiss() }
+                    Button("取消", systemImage: "xmark") { dismiss() }
                 }
             }
         }
