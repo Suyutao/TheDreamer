@@ -44,8 +44,6 @@ Created with ❤️ By Suyutao & Manus & Trae.
 
 ---
 
-## English
-
 **The Dreamer** is a data-driven learning analytics tool built by students, for students.
 
 ### Our Mission
@@ -62,7 +60,7 @@ To empower students with data insights that help them take control of their lear
 - **Frontend**: SwiftUI for native iOS experience
 - **Data**: SwiftData for local-first data persistence
 - **Charts**: Swift Charts for beautiful, interactive visualizations
-- **Platform**: iOS 18+, built with Xcode 16+
+- **Platform**: iOS 26+, built with Xcode 26+
 
 ### Contributing
 We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
