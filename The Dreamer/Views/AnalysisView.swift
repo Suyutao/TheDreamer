@@ -89,8 +89,10 @@ struct AnalysisView: View {
                                     let subjectExams = exams.filter { $0.subject?.id == subject.id }
                                      
                                     ForEach(subjectExams) { exam in
-                                        // 显示考试记录的行视图
-                                        ExamRowView(exam: exam)
+                                        NavigationLink(destination: ExamDetailView(exam: exam)) {
+                                            // 显示考试记录的行视图
+                                            ExamRowView(exam: exam)
+                                        }
                                     }
                                     // 为列表项添加删除功能
                                     .onDelete { indices in
@@ -102,7 +104,9 @@ struct AnalysisView: View {
                             // 按时间排序显示（原有逻辑）
                             Section {
                                 ForEach(exams) { exam in
-                                    ExamRowView(exam: exam)
+                                    NavigationLink(destination: ExamDetailView(exam: exam)) {
+                                        ExamRowView(exam: exam)
+                                    }
                                 }
                                 .onDelete(perform: deleteExam)
                             }

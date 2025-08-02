@@ -9,7 +9,9 @@
 *   **技术栈:** SwiftUI, SwiftData, Swift Charts, Swift。
 *   **目标SDK:** iOS 26。
 *   **架构模式:** 遵循MV（Model-View）模式。
+*   **编译指令:** `xcodebuild -project The Dreamer.xcodeproj -scheme The Dreamer -destination platform=iOS Simulator,name=iPhone 16 Pro clean build`
 *   **禁止使用的APIs:** 禁止使用`UIKit`/`AppKit`进行界面布局；禁止使用`CoreData`；禁止使用`UserDefaults`存储核心业务数据。
+*   **测试方法：** 编译成功即可，无需在真实设备或模拟器上跑。
 
 ---
 ## 3. !!! 代码组织与文件结构规范 (The "Where-To-Put-Code" Rulebook) !!!
