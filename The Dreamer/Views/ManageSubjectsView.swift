@@ -82,33 +82,16 @@ struct ManageSubjectsView: View {
                     List {
                         // 遍历所有科目
                         ForEach(subjects) { subject in
-                            // 使用HStack水平排列内容
-                            HStack {
-                                // 在编辑模式下显示移动按钮
-                                if editMode.isEditing {
-                                    // 使用VStack垂直排列移动按钮
-                                    VStack {
-                                        // 上移按钮
-                                        Button(action: { moveUp(subject) }) { Image(systemName: "chevron.up") }
-                                            // 当科目为第一个时禁用按钮
-                                            .disabled(subject == subjects.first)
-                                        // 下移按钮
-                                        Button(action: { moveDown(subject) }) { Image(systemName: "chevron.down") }
-                                            // 当科目为最后一个时禁用按钮
-                                            .disabled(subject == subjects.last)
-                                    }
-                                    // 设置按钮样式为无边框
-                                    .buttonStyle(.borderless)
-                                }
-                                // 导航链接到科目详情视图
-                                NavigationLink(destination: SubjectDetailView(subject: subject)) {
-                                    // 显示科目行视图
-                                    SubjectRow(subject: subject)
-                                }
+                            // 导航链接到科目详情视图
+                            NavigationLink(destination: SubjectDetailView(subject: subject)) {
+                                // 显示科目行视图
+                                SubjectRow(subject: subject)
                             }
                         }
                         // 为列表添加删除功能
                         .onDelete(perform: deleteSubject)
+                        // 为列表添加拖动排序功能
+                        .onMove(perform: moveSubject)
                     }
                 }
             }
@@ -140,40 +123,26 @@ struct ManageSubjectsView: View {
 
     // MARK: - Functions
     
-    /// 上移科目函数，将指定科目在列表中的位置向上移动一位。
-    /// - Parameter subject: 要上移的科目对象。
-    private func moveUp(_ subject: Subject) {
-        logger.info("尝试上移科目: \(subject.name)")
-        // 确保当前科目索引大于0
-        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex > 0 else { 
-            logger.warning("无法上移科目 \(subject.name): 已经是第一个科目")
-            return 
+    /// 拖动排序函数，处理科目在列表中的拖动排序。
+    /// - Parameters:
+    ///   - source: 源索引集合
+    ///   - destination: 目标索引
+    private func moveSubject(from source: IndexSet, to destination: Int) {
+        logger.info("拖动排序科目，源索引: \(source), 目标索引: \(destination)")
+        
+        // 创建一个可变的科目数组副本
+        var reorderedSubjects = subjects
+        
+        // 执行移动操作
+        reorderedSubjects.move(fromOffsets: source, toOffset: destination)
+        
+        // 更新所有科目的orderIndex以反映新的顺序
+        for (index, subject) in reorderedSubjects.enumerated() {
+            subject.orderIndex = index
+            logger.info("更新科目 \(subject.name) 的orderIndex为: \(index)")
         }
-        // 获取要交换的科目
-        let subjectToSwap = subjects[currentIndex - 1]
-        // 交换两个科目的orderIndex
-        let tempOrder = subject.orderIndex
-        subject.orderIndex = subjectToSwap.orderIndex
-        subjectToSwap.orderIndex = tempOrder
-        logger.info("成功上移科目: \(subject.name)")
-    }
-
-    /// 下移科目函数，将指定科目在列表中的位置向下移动一位。
-    /// - Parameter subject: 要下移的科目对象。
-    private func moveDown(_ subject: Subject) {
-        logger.info("尝试下移科目: \(subject.name)")
-        // 确保当前科目索引小于科目总数
-        guard let currentIndex = subjects.firstIndex(of: subject), currentIndex < subjects.count - 1 else { 
-            logger.warning("无法下移科目 \(subject.name): 已经是最后一个科目")
-            return 
-        }
-        // 获取要交换的科目
-        let subjectToSwap = subjects[currentIndex + 1]
-        // 交换两个科目的orderIndex
-        let tempOrder = subject.orderIndex
-        subject.orderIndex = subjectToSwap.orderIndex
-        subjectToSwap.orderIndex = tempOrder
-        logger.info("成功下移科目: \(subject.name)")
+        
+        logger.info("完成拖动排序")
     }
 
     /// 删除科目函数，从列表中删除指定索引的科目。
