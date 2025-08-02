@@ -68,59 +68,51 @@ struct ExamDetailView: View {
             // 垂直堆叠布局，元素之间间距为20点
             VStack(spacing: 20) {
                 // MARK: - 基本信息卡片
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("考试信息")
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "doc.text")
+                            .foregroundColor(.blue)
+                        Text("考试名称")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(exam.name)
+                            .fontWeight(.medium)
+                    }
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "doc.text")
-                                .foregroundColor(.blue)
-                            Text("考试名称")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(exam.name)
-                                .fontWeight(.medium)
-                        }
-                        
-                        HStack {
-                            Image(systemName: "book")
-                                .foregroundColor(.green)
-                            Text("科目")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(exam.subject?.name ?? "未知科目")
-                                .fontWeight(.medium)
-                        }
-                        
-                        HStack {
-                            Image(systemName: "calendar")
-                                .foregroundColor(.orange)
-                            Text("考试日期")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(exam.date, style: .date)
-                                .fontWeight(.medium)
-                        }
-                        
-                        HStack {
-                            Image(systemName: "number")
-                                .foregroundColor(.purple)
-                            Text("总分")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text("\(Int(exam.totalScore))")
-                                .fontWeight(.medium)
-                        }
+                    HStack {
+                        Image(systemName: "book")
+                            .foregroundColor(.green)
+                        Text("科目")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(exam.subject?.name ?? "未知科目")
+                            .fontWeight(.medium)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.orange)
+                        Text("考试日期")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(exam.date, style: .date)
+                            .fontWeight(.medium)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "number")
+                            .foregroundColor(.purple)
+                        Text("总分")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(exam.totalScore))")
+                            .fontWeight(.medium)
                     }
                 }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .dashboardPanel("考试信息")
                 
                 // MARK: - 折线图区域
-                VStack(alignment: .leading, spacing: 0) {
+                Group {
                     if chartDataPoints.count >= 2 {
                         LineChartView(
                             dataPoints: chartDataPoints,
@@ -138,8 +130,7 @@ struct ExamDetailView: View {
                         .frame(height: 300)
                     }
                 }
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .dashboardPanel("成绩趋势")
             }
             .padding(.horizontal, 16)
         }
