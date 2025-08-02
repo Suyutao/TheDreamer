@@ -27,7 +27,7 @@ Thank you for your interest in contributing to The Dreamer! This project is buil
 3. Ensure your contribution aligns with our educational mission
 
 #### Development Setup
-- **Requirements**: Xcode 16+, iOS 18+ SDK
+- **Requirements**: Xcode 26+, iOS 26+ SDK
 - **Tech Stack**: SwiftUI, SwiftData, Swift Charts
 - **Architecture**: MV (Model-View) pattern
 
