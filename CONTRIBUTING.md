@@ -89,3 +89,5 @@ Feel free to open an issue for questions about contributing. We're here to help!
 **Remember**: This project is about empowering students through data-driven learning. Every line of code should serve that mission.
 
 Thank you for helping make learning better for students everywhere! 🎓
+
+See [`CONTRIBUTING_zh.md`](CONTRIBUTING_zh.md) for Chinese translation.

@@ -57,3 +57,5 @@ For answers to common questions about this code of conduct, see https://www.cont
 ---
 
 **Remember**: We're all here to make learning better for students. Let's build something amazing together! 🎓
+
+See [`CODE_OF_CONDUCT_zh.md`](CODE_OF_CONDUCT_zh.md) for Chinese translation.

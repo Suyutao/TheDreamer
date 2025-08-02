@@ -11,3 +11,5 @@ This project is primarily developed with AI assistance. Special thanks to:
 - **Manus**: AI assistant for project planning and architecture
 
 While the maintainer has basic understanding of the codebase, the heavy reliance on AI tools has made this project possible despite limited deep technical expertise.
+
+See [`ACKNOWLEDGEMENTS_zh.md`](ACKNOWLEDGEMENTS_zh.md) for Chinese translation.
