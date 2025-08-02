@@ -27,7 +27,7 @@
 “The Dreamer”不仅仅是一行行代码，它更是一份承诺：
 
 *   **纯粹:** **本项目永不商业化，永远免费。** 它不会有任何广告、会员或内购。
-*   **开放:** **本项目采用 GPLv3 开源协议。** 这意味着任何人都可以自由地查看它的源代码、学习它、修改它，甚至创造一个属于你自己的版本。
+*   **开放:** **本项目采用 Apache License 2.0 开源协议。** 这意味着任何人都可以自由地查看它的源代码、学习它、修改它，甚至创造一个属于你自己的版本。使用时请保留原作者署名。
 *   **真诚:** 我会以一个真实用户的身份，去打磨它的每一个功能。我遇到的学习痛点，就是它要解决的问题。
 
 ---
@@ -42,4 +42,36 @@
 
 Created with ❤️ By Suyutao & Manus & Trae.
 
-更新于2025/08/03
+---
+
+## English
+
+**The Dreamer** is a data-driven learning analytics tool built by students, for students.
+
+### Our Mission
+To empower students with data insights that help them take control of their learning journey through visualization and analysis.
+
+### Key Features
+- 📊 **Comprehensive Analytics**: Track exam scores, practice sessions, and learning progress
+- 📈 **Rich Visualizations**: Line charts, bar charts, heatmaps, and scatter plots using Swift Charts
+- 🎯 **Subject Management**: Organize and analyze performance across different subjects
+- 📝 **Template System**: Create reusable exam and practice templates
+- 🔒 **Privacy First**: All data stays on your device with SwiftData
+
+### Tech Stack
+- **Frontend**: SwiftUI for native iOS experience
+- **Data**: SwiftData for local-first data persistence
+- **Charts**: Swift Charts for beautiful, interactive visualizations
+- **Platform**: iOS 18+, built with Xcode 16+
+
+### Contributing
+We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+
+### License
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+### Acknowledgments
+See [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md) for third-party components and attributions.
+
+2025/08/03
+
