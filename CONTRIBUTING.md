@@ -30,6 +30,7 @@ Thank you for your interest in contributing to The Dreamer! This project is buil
 - **Requirements**: Xcode 26+, iOS 26+ SDK
 - **Tech Stack**: SwiftUI, SwiftData, Swift Charts
 - **Architecture**: MV (Model-View) pattern
+- **Development Note**: This project is primarily developed with AI assistance. Contributors should be aware that while the maintainer has basic understanding of the codebase, heavy reliance on AI tools is part of the development approach.
 
 #### Code Standards
 - Follow Swift naming conventions

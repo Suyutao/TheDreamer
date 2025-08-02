@@ -1,9 +1,14 @@
 The Dreamer
 Copyright 2025 Suyutao
 
-This project was originally designed and developed by Suyutao.
+This project was designed and developed by Suyutao.
 Project Philosophy: By Students, For Students
 Tech Stack: SwiftUI + SwiftData + Swift Charts
+
+Development Note: This project is primarily developed with AI assistance.
+While I have basic understanding of the codebase, I rely on AI tools
+for implementation. This approach allows me to create valuable tools for
+students despite limited deep technical expertise.
 
 This software contains components derived from Apple Inc.'s sample code.
 Original Apple code © 2024 Apple Inc.
