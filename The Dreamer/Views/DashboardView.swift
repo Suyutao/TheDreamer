@@ -44,7 +44,7 @@ struct DashboardView: View {
                 )
                 .padding(.top, 50)
             }
-            .navigationTitle("第 \(currentWeek) 周")
+            .navigationTitle("2025年第 \(currentWeek) 周")
         }
     }
 }
