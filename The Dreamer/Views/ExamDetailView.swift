@@ -21,11 +21,45 @@
 import SwiftUI
 // 导入用于数据存储和管理的SwiftData框架
 import SwiftData
+// 导入图表框架用于绘制折线图
+import Charts
 
 // 定义一个结构体，表示考试详细视图界面
 struct ExamDetailView: View {
     // 接收一个考试记录作为参数
     let exam: Exam
+    
+    // 查询同一科目的所有考试记录，用于绘制折线图
+    @Query private var allExams: [Exam]
+    
+    // 初始化方法，设置查询条件
+    init(exam: Exam) {
+        self.exam = exam
+        // 查询同一科目的所有考试，按日期排序
+        let subjectName = exam.subject?.name ?? ""
+        self._allExams = Query(
+            filter: #Predicate<Exam> { examItem in
+                examItem.subject?.name == subjectName
+            },
+            sort: \Exam.date
+        )
+    }
+    
+    // MARK: - 计算属性
+    
+    /// 生成折线图数据点
+    private var chartDataPoints: [ChartDataPoint] {
+        allExams.map { examItem in
+            ChartDataPoint(
+                date: examItem.date,
+                score: examItem.totalScore,
+                totalScore: examItem.subject?.totalScore ?? 100,
+                examName: examItem.name,
+                subject: examItem.subject?.name ?? "未知科目",
+                type: .myScore
+            )
+        }
+    }
     
     // 定义视图的主要内容
     var body: some View {
@@ -33,53 +67,81 @@ struct ExamDetailView: View {
         ScrollView {
             // 垂直堆叠布局，元素之间间距为20点
             VStack(spacing: 20) {
-                // 考试基本信息卡片
+                // MARK: - 基本信息卡片
                 VStack(alignment: .leading, spacing: 12) {
-                    // 考试名称
-                    Text(exam.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
+                    Text("考试信息")
+                        .font(.headline)
+                        .foregroundColor(.primary)
                     
-                    // 科目信息
-                    HStack {
-                        Image(systemName: "book.fill")
-                            .foregroundStyle(.blue)
-                        Text(exam.subject?.name ?? "未知科目")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    // 考试日期
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundStyle(.green)
-                        Text(exam.date, style: .date)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    // 总分信息
-                    HStack {
-                        Image(systemName: "chart.bar.fill")
-                            .foregroundStyle(.orange)
-                        Text("总分：\(exam.totalScore, specifier: "%.1f")")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "doc.text")
+                                .foregroundColor(.blue)
+                            Text("考试名称")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(exam.name)
+                                .fontWeight(.medium)
+                        }
+                        
+                        HStack {
+                            Image(systemName: "book")
+                                .foregroundColor(.green)
+                            Text("科目")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(exam.subject?.name ?? "未知科目")
+                                .fontWeight(.medium)
+                        }
+                        
+                        HStack {
+                            Image(systemName: "calendar")
+                                .foregroundColor(.orange)
+                            Text("考试日期")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(exam.date, style: .date)
+                                .fontWeight(.medium)
+                        }
+                        
+                        HStack {
+                            Image(systemName: "number")
+                                .foregroundColor(.purple)
+                            Text("总分")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(exam.totalScore))")
+                                .fontWeight(.medium)
+                        }
                     }
                 }
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(12)
                 
-                // 占位符空状态视图
-                EmptyStateView(
-                    iconName: "chart.line.uptrend.xyaxis",
-                    title: "详细分析即将到来",
-                    message: "这里将显示考试的详细分析数据，包括题目得分情况、知识点分析、历史对比等功能。"
-                )
-                .padding(.top, 40)
+                // MARK: - 折线图区域
+                VStack(alignment: .leading, spacing: 0) {
+                    if chartDataPoints.count >= 2 {
+                        LineChartView(
+                            dataPoints: chartDataPoints,
+                            selectedSubject: exam.subject?.name,
+                            visibleLines: [.myScore],
+                            chartStyle: .smooth,
+                            showYAxisAsPercentage: false
+                        )
+                    } else {
+                        EmptyStateView(
+                            iconName: "chart.line.uptrend.xyaxis",
+                            title: "成绩趋势",
+                            message: "需要至少2次考试记录才能显示趋势图"
+                        )
+                        .frame(height: 300)
+                    }
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
             }
-            .padding()
+            .padding(.horizontal, 16)
         }
         // 设置导航栏标题为考试名称
         .navigationTitle(exam.name)
@@ -99,15 +161,21 @@ struct ExamDetailView: View {
     let subject = Subject(name: "数学", totalScore: 150, orderIndex: 0)
     context.insert(subject)
     
-    // 创建示例考试
-    let exam = Exam(name: "期中考试", date: Date(), totalScore: 145.5, subject: subject)
-    context.insert(exam)
+    // 创建多个示例考试来展示折线图
+    let exams = [
+        Exam(name: "第一次月考", date: Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date(), totalScore: 135.0, subject: subject),
+        Exam(name: "第二次月考", date: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(), totalScore: 142.5, subject: subject),
+        Exam(name: "期中考试", date: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date(), totalScore: 145.5, subject: subject),
+        Exam(name: "第三次月考", date: Date(), totalScore: 148.0, subject: subject)
+    ]
+    
+    exams.forEach { context.insert($0) }
     
     // 保存上下文
     try? context.save()
     
     return NavigationStack {
-        ExamDetailView(exam: exam)
+        ExamDetailView(exam: exams.last!)
     }
     .modelContainer(container)
 }

@@ -22,43 +22,6 @@
 
 import SwiftUI
 
-// MARK: - Form Header
-// 表单头部组件：显示一个带图标的标题，通常用于表单或设置页面的顶部
-struct FormHeader: View {
-    // 图标名称：指定要显示的系统图标名称
-    let iconName: String
-    // 标题文本：显示在图标下方的标题文字
-    let title: String
-    // 图标颜色：指定图标的背景颜色
-    let iconColor: Color
-
-    // 界面构建部分：定义了组件的具体外观
-    var body: some View {
-        // 垂直堆叠布局，元素之间间距为8点
-        VStack(spacing: 8) {
-            // 显示系统图标
-            Image(systemName: iconName)
-                // 设置图标大小为40点
-                .font(.system(size: 40))
-                // 设置图标颜色为白色
-                .foregroundStyle(iconColor.gradient)
-                // 为图标添加内边距
-                .padding()
-                // 为图标添加圆形背景，背景色为指定的颜色渐变
-                .background(Circle().fill(.background.tertiary))
-            
-            // 显示标题文本
-            Text(title)
-                // 设置字体为标题2号并加粗
-                .font(.title).bold()
-        }
-        // 设置组件宽度占满可用空间
-        .frame(maxWidth: .infinity)
-        // 设置列表行背景为透明
-        .listRowBackground(Color.clear)
-    }
-}
-
 // MARK: - Empty State View
 // 空状态视图组件：当没有数据可显示时，向用户展示提示信息
 struct EmptyStateView: View {
@@ -103,16 +66,6 @@ struct EmptyStateView: View {
         .padding()
         // 向上偏移50点，使组件在视觉上更居中
         .offset(y: -50)
-    }
-}
-
-#Preview("Header") {
-    Form {
-        FormHeader(
-            iconName: "plus.circle.fill",
-            title: "这是一个预览",
-            iconColor: .blue
-        )
     }
 }
 
