@@ -236,39 +236,26 @@ struct ManageSubjectsView: View {
 
 /// [V21] 封装的科目行视图，用于在列表中显示单个科目的信息。
 struct SubjectRow: View {
-    @Environment(\.modelContext) private var modelContext
-    
-    /// 接收一个Subject的持久化标识符
-    let subjectID: PersistentIdentifier
+    /// 直接持有Subject对象，避免使用persistentModelID导致的闪退问题
+    let subject: Subject
     
     init(subject: Subject) {
-        self.subjectID = subject.persistentModelID
+        self.subject = subject
     }
     
     /// 视图的主体部分
     var body: some View {
         // 使用HStack水平排列内容
         HStack {
-            if let subject = modelContext.model(for: subjectID) as? Subject {
-                // 显示科目名称
-                Text(subject.name)
-                    .font(.headline)
-                // 添加弹性空间
-                Spacer()
-                // 显示科目满分
-                Text("满分: \(subject.totalScore, specifier: "%.0f")")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
-                // 如果科目不存在，显示占位内容
-                Text("科目已删除")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("--")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            // 显示科目名称
+            Text(subject.name)
+                .font(.headline)
+            // 添加弹性空间
+            Spacer()
+            // 显示科目满分
+            Text("满分: \(subject.totalScore, specifier: "%.0f")")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         // 设置垂直内边距
         .padding(.vertical, 4)

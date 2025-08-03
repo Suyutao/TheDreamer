@@ -60,6 +60,12 @@ struct AnalysisView: View {
     // 定义一个状态变量，用于控制管理科目与模板界面是否显示
     @State private var showingManageSheet = false
     
+    // 添加状态变量来控制删除确认对话框
+    @State private var showingDeleteAlert = false
+    @State private var examToDelete: Exam? = nil
+    @State private var deleteIndexSet: IndexSet? = nil
+    @State private var deleteFromSubjectExams: [Exam]? = nil
+    
     
     // 定义视图的主要内容
     var body: some View {
@@ -102,7 +108,9 @@ struct AnalysisView: View {
                                     }
                                     // 为列表项添加删除功能
                                     .onDelete { indices in
-                                        deleteExams(at: indices, in: subjectExams)
+                                        deleteIndexSet = indices
+                                        deleteFromSubjectExams = subjectExams
+                                        showingDeleteAlert = true
                                     }
                                 }
                             }
@@ -114,7 +122,11 @@ struct AnalysisView: View {
                                         ExamRowView(exam: exam)
                                     }
                                 }
-                                .onDelete(perform: deleteExam)
+                                .onDelete { indices in
+                                    deleteIndexSet = indices
+                                    deleteFromSubjectExams = nil
+                                    showingDeleteAlert = true
+                                }
                             }
                         }
                     }
@@ -180,23 +192,39 @@ struct AnalysisView: View {
                 ManageSubjectsView()
                     .environment(\.modelContext, modelContext)
             }
-        }
-    }
-    
-    // 删除考试记录的函数
-    private func deleteExam(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(exams[index])
-        }
-    }
-    
-    // 删除特定科目下的考试记录
-    private func deleteExams(at offsets: IndexSet, in subjectExams: [Exam]) {
-        for index in offsets {
-            if let examIndex = exams.firstIndex(where: { $0.id == subjectExams[index].id }) {
-                modelContext.delete(exams[examIndex])
+            // 删除确认对话框
+            .alert("确认删除", isPresented: $showingDeleteAlert) {
+                Button("取消", role: .cancel) { }
+                Button("删除", role: .destructive) {
+                    performDelete()
+                }
+            } message: {
+                Text("确定要删除这些考试记录吗？此操作无法撤销。")
             }
         }
+    }
+    
+    // 执行删除操作
+    private func performDelete() {
+        guard let indices = deleteIndexSet else { return }
+        
+        if let subjectExams = deleteFromSubjectExams {
+            // 删除特定科目下的考试记录
+            for index in indices {
+                if let examIndex = exams.firstIndex(where: { $0.id == subjectExams[index].id }) {
+                    modelContext.delete(exams[examIndex])
+                }
+            }
+        } else {
+            // 删除全局列表中的考试记录
+            for index in indices {
+                modelContext.delete(exams[index])
+            }
+        }
+        
+        // 清理状态变量
+        deleteIndexSet = nil
+        deleteFromSubjectExams = nil
     }
     
     // 安全地获取考试的科目名称

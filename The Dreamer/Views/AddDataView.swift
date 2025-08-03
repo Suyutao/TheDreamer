@@ -184,9 +184,9 @@ struct AddDataView: View {
         Section(header: Text("考试信息")) {
             // 创建文本输入框，用于输入考试名称
             // TextField用于创建文本输入框
-            // "考试名称，如：期中数学"是占位符文本
+            // "考试名称"是占位符文本
             // text: $examName绑定到examName状态变量
-            TextField("考试名称，如：期中数学", text: $examName)
+            TextField("考试名称", text: $examName)
             
             // 创建日期选择器，用于选择考试日期
             // DatePicker用于创建日期选择器
@@ -215,7 +215,7 @@ struct AddDataView: View {
             }
             
             // 创建文本输入框，用于输入成绩
-            TextField("成绩", text: $scoreText)
+            TextField(selectedSubject != nil ? "成绩（满分\(Int(selectedSubject!.totalScore))）" : "成绩", text: $scoreText)
                 // 设置键盘类型为数字键盘
                 // .keyboardType(.decimalPad)设置键盘类型为带小数点的数字键盘
                 .keyboardType(.decimalPad)
@@ -264,23 +264,29 @@ struct AddDataView: View {
         // [V18] 添加简单的表单验证，确保核心信息已填写
         
         // 如果成绩为空，则禁用保存按钮
-        // scoreText.isEmpty检查scoreText是否为空字符串
-        // return true表示禁用按钮
         if scoreText.isEmpty { return true }
         
+        // 验证分数格式
+        guard let scoreValue = Double(scoreText) else { return true }
+        
+        // 验证分数不能为负数
+        if scoreValue < 0 { return true }
+        
         // 根据数据类型进行不同的验证
-        // switch是条件分支语句
         if let type = dataType {
             switch type {
             case .exam:
                 // 对于考试，需要填写考试名称和选择科目
-                // ||是逻辑或运算符，只要有一个条件为true，整个表达式就为true
-                // examName.isEmpty检查考试名称是否为空
-                // selectedSubject == nil检查是否没有选择科目
-                return examName.isEmpty || selectedSubject == nil
+                if examName.isEmpty || selectedSubject == nil { return true }
+                
+                // 验证分数不能超过科目满分
+                if let subject = selectedSubject, scoreValue > subject.totalScore {
+                    return true
+                }
+                
+                return false
             case .practice:
                 // 对于练习，需要选择练习类别
-                // selectedPracticeCollection == nil检查是否没有选择练习类别
                 return selectedPracticeCollection == nil
             }
         } else {
@@ -289,44 +295,16 @@ struct AddDataView: View {
     }
     
     // 保存数据的函数
-    // private表示这个函数只能在当前结构体内访问
-    // func表示这是一个函数定义
-    // saveData是函数名
     private func saveData() {
-        // 尝试将输入的成绩文本转换为数字
-        // guard是条件判断语句，用于提前退出
-        // let scoreValue = Double(scoreText)尝试将scoreText转换为Double类型
-        // else表示如果转换失败则执行后面的代码
-        guard let scoreValue = Double(scoreText) else {
-            // 如果转换失败，打印错误信息
-            // print用于在控制台输出信息
-            print("\(Date()) [AddDataView] 错误：分数格式不正确")
-            return // 真实应用中应有弹窗提示
-        }
-        
-        // 验证分数不能为负数
-        guard scoreValue >= 0 else {
-            print("\(Date()) [AddDataView] 错误：分数不能为负数")
-            return
-        }
+        // 由于按钮禁用逻辑已经验证了所有条件，这里可以安全地进行保存
+        guard let scoreValue = Double(scoreText) else { return }
         
         // 根据数据类型执行不同的保存操作
         if let type = dataType {
             switch type {
             case .exam:
                 // 保存考试数据
-                
-                // 确保已选择科目
-                guard let subject = selectedSubject else { 
-                    print("\(Date()) [AddDataView] 错误：未选择科目")
-                    return 
-                }
-                
-                // 验证分数不能超过科目满分
-                guard scoreValue <= subject.totalScore else {
-                    print("\(Date()) [AddDataView] 错误：分数(\(scoreValue))超过科目满分(\(subject.totalScore))")
-                    return
-                }
+                guard let subject = selectedSubject else { return }
                 
                 // 创建新的考试实例
                 do {
@@ -341,12 +319,7 @@ struct AddDataView: View {
                 
             case .practice:
                 // 保存练习数据
-                
-                // 确保已选择练习类别
-                guard let collection = selectedPracticeCollection else { 
-                    print("\(Date()) [AddDataView] 错误：未选择练习类别")
-                    return 
-                }
+                guard let collection = selectedPracticeCollection else { return }
                 
                 // 创建新的练习实例
                 do {
