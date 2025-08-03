@@ -184,7 +184,7 @@ struct AnalysisView: View {
             }
             // 添加数据界面的弹窗
             .sheet(isPresented: $showingAddDataSheet) {
-                AddDataView(dataType: $addableDataType)
+                AddDataView(dataType: $addableDataType, examToEdit: nil)
                     .environment(\.modelContext, modelContext)
             }
             // 管理科目与模板界面的弹窗

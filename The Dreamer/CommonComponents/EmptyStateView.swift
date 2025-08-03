@@ -64,8 +64,6 @@ struct EmptyStateView: View {
         }
         // 为整个组件添加内边距
         .padding()
-        // 向上偏移50点，使组件在视觉上更居中
-        .offset(y: -50)
     }
 }
 

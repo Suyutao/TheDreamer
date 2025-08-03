@@ -28,10 +28,7 @@ import SwiftData
 // CommonComponents包含FormHeader等可复用组件
 
 
-// 定义一个枚举类型，用来区分是添加考试还是练习
-// enum是一种特殊的数据类型，它定义了一组相关的值
-// AddableDataType表示可添加的数据类型
-
+// AddableDataType枚举已在AnalysisView.swift中定义
 
 // 定义一个结构体，表示添加数据的视图界面
 // struct是Swift中的一种数据结构，用于封装相关的属性和功能
@@ -58,6 +55,9 @@ struct AddDataView: View {
     // let表示这是一个常量（不可变的）
     // dataType是在创建视图时传入的参数
     @Binding var dataType: AddableDataType?
+    
+    // 编辑模式：如果传入exam则为编辑模式，否则为添加模式
+    let examToEdit: Exam?
     
     // UI State（用户界面状态变量）
     // @State是属性包装器，用于管理视图的状态
@@ -91,11 +91,10 @@ struct AddDataView: View {
     // Queries（数据查询）
     // @Query是SwiftData提供的属性包装器，用于自动查询数据
     
-    // 从数据库中查询所有科目，并按名称排序
-    // sort: \Subject.name表示按Subject结构体的name属性排序
+    // 从数据库中查询所有科目，并按orderIndex排序（与ManageSubjectsView保持一致）
+    // sort: \Subject.orderIndex表示按Subject结构体的orderIndex属性排序
     // private var subjects: [Subject]表示定义一个私有变量subjects，类型为Subject数组
-    // 从数据库中查询所有科目，并按名称排序
-    @Query(sort: [SortDescriptor(\Subject.name)]) private var subjects: [Subject]
+    @Query(sort: [SortDescriptor(\Subject.orderIndex)]) private var subjects: [Subject]
     
     // 从数据库中查询所有练习类别，并按名称排序
     // \PracticeCollection.name表示按PracticeCollection结构体的name属性排序
@@ -126,9 +125,11 @@ struct AddDataView: View {
                     iconColor: .accentColor
                 )
                 
-                // 根据数据类型显示不同的表单内容
-                // switch是条件分支语句，根据dataType的值执行不同的代码块
-                if let type = dataType {
+                // 根据编辑模式或数据类型显示不同的表单内容
+                if isEditingMode {
+                    // 编辑模式下只显示考试表单
+                    examForm
+                } else if let type = dataType {
                     switch type {
                     case .exam:
                         // 如果是考试，则显示考试表单
@@ -169,6 +170,19 @@ struct AddDataView: View {
                 }
             }
         }
+        .onAppear {
+            // 如果是编辑模式，初始化表单数据
+            if let exam = examToEdit {
+                examName = exam.name
+                date = exam.date
+                scoreText = String(Int(exam.totalScore))
+                selectedSubject = exam.subject
+                // 编辑模式下强制设置为考试类型
+                if dataType == nil {
+                    dataType = .exam
+                }
+            }
+        }
     }
   
     // MARK: - Encapsulated View Components
@@ -195,22 +209,25 @@ struct AddDataView: View {
             // displayedComponents: .date表示只显示日期部分
             DatePicker("日期", selection: $date, displayedComponents: .date)
             
-            // 创建下拉选择器，用于选择科目
-            // Picker用于创建下拉选择器
-            // "科目"是标签文本
-            // selection: $selectedSubject绑定到selectedSubject状态变量
-            Picker("科目", selection: $selectedSubject) {
-                // 默认选项，提示用户选择科目
-                // Text用于显示文本
-                // .tag(nil as Subject?)将这个选项与nil值关联
-                Text("请选择科目").tag(nil as Subject?)
-                // 遍历所有科目，为每个科目创建一个选项
-                // ForEach是SwiftUI中的循环结构，用于遍历数组
-                ForEach(subjects) { subject in
-                    // 显示科目名称，并将其与selectedSubject关联
-                    // subject.name获取科目名称
-                    // .tag(subject as Subject?)将这个选项与具体的subject值关联
-                    Text(subject.name).tag(subject as Subject?)
+            // 科目选择：编辑模式下显示为只读，添加模式下可选择
+            if isEditingMode {
+                // 编辑模式下显示当前科目，不可更改
+                HStack {
+                    Text("科目")
+                    Spacer()
+                    Text(selectedSubject?.name ?? "未知科目")
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                // 添加模式下的科目选择器
+                Picker("科目", selection: $selectedSubject) {
+                    // 默认选项，提示用户选择科目
+                    Text("请选择科目").tag(nil as Subject?)
+                    // 遍历所有科目，为每个科目创建一个选项
+                    ForEach(subjects) { subject in
+                        // 显示科目名称，并将其与selectedSubject关联
+                        Text(subject.name).tag(subject as Subject?)
+                    }
                 }
             }
             
@@ -219,6 +236,19 @@ struct AddDataView: View {
                 // 设置键盘类型为数字键盘
                 // .keyboardType(.decimalPad)设置键盘类型为带小数点的数字键盘
                 .keyboardType(.decimalPad)
+                // 添加输入验证和格式化
+                .onChange(of: scoreText) { oldValue, newValue in
+                    // 过滤非数字字符（保留小数点）
+                    let filtered = newValue.filter { $0.isNumber || $0 == "." }
+                    if filtered != newValue {
+                        scoreText = filtered
+                    }
+                    // 确保只有一个小数点
+                    let components = filtered.components(separatedBy: ".")
+                    if components.count > 2 {
+                        scoreText = components[0] + "." + components[1]
+                    }
+                }
         }
     }
     
@@ -244,25 +274,45 @@ struct AddDataView: View {
             TextField("成绩", text: $scoreText)
                 // 设置键盘类型为数字键盘
                 .keyboardType(.decimalPad)
+                // 添加输入验证和格式化
+                .onChange(of: scoreText) { oldValue, newValue in
+                    // 过滤非数字字符（保留小数点）
+                    let filtered = newValue.filter { $0.isNumber || $0 == "." }
+                    if filtered != newValue {
+                        scoreText = filtered
+                    }
+                    // 确保只有一个小数点
+                    let components = filtered.components(separatedBy: ".")
+                    if components.count > 2 {
+                        scoreText = components[0] + "." + components[1]
+                    }
+                }
         }
     }
     
     // MARK: - Computed Properties & Functions
     // 定义计算属性和函数
     
-    // 计算导航栏标题，根据数据类型返回不同的标题
+    // 判断是否为编辑模式
+    private var isEditingMode: Bool {
+        examToEdit != nil
+    }
+    
+    // 计算导航栏标题，根据数据类型和编辑模式返回不同的标题
     // private表示这个属性只能在当前结构体内访问
     // var表示这是一个计算属性
     // String表示返回值类型为字符串
     private var navigationTitle: String {
-        // 三元运算符：如果dataType等于.exam则返回"添加考试"，否则返回"添加练习"
-        dataType == .exam ? "添加考试" : "添加练习"
+        if isEditingMode {
+            return "编辑考试"
+        } else {
+            // 三元运算符：如果dataType等于.exam则返回"添加考试"，否则返回"添加练习"
+            return dataType == .exam ? "添加考试" : "添加练习"
+        }
     }
     
     // 计算保存按钮是否禁用，用于表单验证
     private var isSaveButtonDisabled: Bool {
-        // [V18] 添加简单的表单验证，确保核心信息已填写
-        
         // 如果成绩为空，则禁用保存按钮
         if scoreText.isEmpty { return true }
         
@@ -272,8 +322,23 @@ struct AddDataView: View {
         // 验证分数不能为负数
         if scoreValue < 0 { return true }
         
-        // 根据数据类型进行不同的验证
-        if let type = dataType {
+        if isEditingMode {
+            // 编辑模式验证
+            // 检查考试名称是否为空
+            if examName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return true
+            }
+            
+            // 验证分数不能超过科目满分（编辑模式下科目不可更改）
+            if let exam = examToEdit, let subject = exam.subject, scoreValue > subject.totalScore {
+                return true
+            }
+            
+            return false
+        } else {
+            // 添加模式验证
+            guard let type = dataType else { return true }
+            
             switch type {
             case .exam:
                 // 对于考试，需要填写考试名称和选择科目
@@ -289,8 +354,6 @@ struct AddDataView: View {
                 // 对于练习，需要选择练习类别
                 return selectedPracticeCollection == nil
             }
-        } else {
-            return true
         }
     }
     
@@ -299,8 +362,26 @@ struct AddDataView: View {
         // 由于按钮禁用逻辑已经验证了所有条件，这里可以安全地进行保存
         guard let scoreValue = Double(scoreText) else { return }
         
-        // 根据数据类型执行不同的保存操作
-        if let type = dataType {
+        if isEditingMode {
+            // 编辑模式：更新现有考试
+            guard let exam = examToEdit else { return }
+            
+            do {
+                exam.name = examName
+                exam.date = date
+                exam.totalScore = scoreValue
+                // 注意：编辑模式下不允许更改科目，所以不更新subject
+                
+                try modelContext.save()
+                print("\(Date()) [AddDataView] 成功更新考试：\(examName), 分数：\(scoreValue)")
+            } catch {
+                print("\(Date()) [AddDataView] 更新考试失败：\(error.localizedDescription)")
+                return
+            }
+        } else {
+            // 添加模式：创建新记录
+            guard let type = dataType else { return }
+            
             switch type {
             case .exam:
                 // 保存考试数据
@@ -332,10 +413,10 @@ struct AddDataView: View {
                     return
                 }
             }
-            
-            // 关闭当前视图
-            dismiss()
         }
+        
+        // 关闭当前视图
+        dismiss()
     }
 }
 
@@ -343,18 +424,33 @@ struct AddDataView: View {
 // 预览代码，用于在设计时预览界面效果
 
 // 考试添加界面的预览
-// #Preview是Xcode提供的预览功能
 #Preview("添加考试") {
-    // [V18] 必须提供所有相关的模型给容器，以便预览正常工作
-    // AddDataView(dataType: .exam)创建一个添加考试的视图实例
-    // .modelContainer(for: [Subject.self, Exam.self])为预览提供数据模型容器
-    AddDataView(dataType: Binding.constant(.exam))
+    AddDataView(dataType: Binding.constant(.exam), examToEdit: nil)
         .modelContainer(for: [Subject.self, Exam.self])
 }
 
 // 练习添加界面的预览
 #Preview("添加练习") {
-    AddDataView(dataType: Binding.constant(.practice))
+    AddDataView(dataType: Binding.constant(.practice), examToEdit: nil)
         .modelContainer(for: [PracticeCollection.self, Practice.self, Subject.self])
+}
+
+// 考试编辑界面的预览
+#Preview("编辑考试") {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Subject.self, Exam.self, configurations: config)
+    let context = container.mainContext
+    
+    // 创建示例科目和考试
+    let subject = Subject(name: "数学", totalScore: 150, orderIndex: 0)
+    context.insert(subject)
+    
+    let exam = Exam(name: "期中考试", date: Date(), totalScore: 135.0, subject: subject)
+    context.insert(exam)
+    
+    try? context.save()
+    
+    return AddDataView(dataType: Binding.constant(.exam), examToEdit: exam)
+        .modelContainer(container)
 }
 

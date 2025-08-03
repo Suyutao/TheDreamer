@@ -34,6 +34,10 @@ struct ExamDetailView: View {
     // 查询同一科目的所有考试记录，用于绘制折线图
     @Query private var allExams: [Exam]
     
+    // MARK: - 导航状态变量
+    // 控制是否显示编辑视图
+    @State private var showingEditView = false
+    
     // 初始化方法，设置查询条件
     init(exam: Exam) {
         self.exam = exam
@@ -168,8 +172,23 @@ struct ExamDetailView: View {
         .navigationTitle(exam.name)
         // 使用大标题模式
         .navigationBarTitleDisplayMode(.large)
-    }
-}
+        // 添加工具栏按钮
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("编辑", systemImage: "pencil") {
+                    showingEditView = true
+                }
+            }
+        }
+        // 显示编辑视图
+        .sheet(isPresented: $showingEditView) {
+            NavigationView {
+                AddDataView(dataType: Binding.constant(.exam), examToEdit: exam)
+            }
+        }
+     }
+ }
+ 
 
 // 预览代码，用于在设计时预览界面效果
 #Preview {
