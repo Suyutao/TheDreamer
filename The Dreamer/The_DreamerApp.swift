@@ -39,15 +39,31 @@ struct TheDreamerApp: App {
     var sharedModelContainer: ModelContainer = {
         // 创建一个 schema，它定义了应用中所有需要持久化的数据模型
         let schema = Schema([
+            // 基础定义模型
+            TestMethod.self,
+            QuestionType.self,
+            
+            // 核心配置与枢纽模型
             Subject.self,
+            
+            // 模板与题目模板
+            PaperStructure.self,
             PaperTemplate.self,
-            Exam.self,  // 添加 Exam 模型
-            Practice.self,  // 添加 Practice 模型
-            PracticeCollection.self,  // 添加 PracticeCollection 模型
-            Question.self,  // 添加 Question 模型
-            QuestionTemplate.self,  // 添加 QuestionTemplate 模型
-            TestMethod.self,  // 添加 TestMethod 模型
-            QuestionType.self  // 添加 QuestionType 模型
+            QuestionDefinition.self,
+            QuestionTemplate.self,
+            
+            // 考试实例、联考实例与题目实例
+            Exam.self,
+            ExamCollection.self,
+            Question.self,
+            QuestionResult.self,
+            
+            // 练习实例与练习组
+            PracticeCollection.self,
+            Practice.self,
+            
+            // 排名数据
+            RankData.self
         ])
         // 创建一个模型配置，指定 schema 并设置数据不是仅存储在内存中（即会持久化到磁盘）
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

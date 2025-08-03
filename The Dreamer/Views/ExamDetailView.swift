@@ -23,6 +23,8 @@ import SwiftUI
 import SwiftData
 // 导入图表框架用于绘制折线图
 import Charts
+// 导入Foundation框架用于基础数据类型和功能
+import Foundation
 
 // 定义一个结构体，表示考试详细视图界面
 struct ExamDetailView: View {
@@ -36,26 +38,54 @@ struct ExamDetailView: View {
     init(exam: Exam) {
         self.exam = exam
         // 查询同一科目的所有考试，按日期排序
-        let subjectName = exam.subject?.name ?? ""
-        self._allExams = Query(
-            filter: #Predicate<Exam> { examItem in
-                examItem.subject?.name == subjectName
-            },
-            sort: \Exam.date
-        )
+        // 使用 subject 的 id 而不是 name 来避免访问失效对象
+        if let subject = exam.subject {
+            let subjectId = subject.persistentModelID
+            self._allExams = Query(
+                filter: #Predicate<Exam> { examItem in
+                    examItem.subject?.persistentModelID == subjectId
+                },
+                sort: \Exam.date
+            )
+        } else {
+            // 如果没有关联科目，查询所有没有科目的考试
+            self._allExams = Query(
+                filter: #Predicate<Exam> { examItem in
+                    examItem.subject == nil
+                },
+                sort: \Exam.date
+            )
+        }
     }
     
     // MARK: - 计算属性
     
+    /// 安全地获取科目名称，避免访问失效对象
+    private var safeSubjectName: String {
+        if let subject = exam.subject {
+            return subject.name
+        } else {
+            return "未知科目"
+        }
+    }
+    
     /// 生成折线图数据点
     private var chartDataPoints: [ChartDataPoint] {
         allExams.map { examItem in
-            ChartDataPoint(
+            // 安全地获取科目名称，避免访问失效对象
+            let subjectName: String
+            if let subject = examItem.subject {
+                subjectName = subject.name
+            } else {
+                subjectName = "未知科目"
+            }
+            
+            return ChartDataPoint(
                 date: examItem.date,
                 score: examItem.totalScore,
                 totalScore: examItem.subject?.totalScore ?? 100,
                 examName: examItem.name,
-                subject: examItem.subject?.name ?? "未知科目",
+                subject: subjectName,
                 type: .myScore
             )
         }
@@ -85,7 +115,7 @@ struct ExamDetailView: View {
                         Text("科目")
                             .foregroundColor(.secondary)
                         Spacer()
-                        Text(exam.subject?.name ?? "未知科目")
+                        Text(safeSubjectName)
                             .fontWeight(.medium)
                     }
                     
@@ -116,7 +146,7 @@ struct ExamDetailView: View {
                     if chartDataPoints.count >= 2 {
                         LineChartView(
                             dataPoints: chartDataPoints,
-                            selectedSubject: exam.subject?.name,
+                            selectedSubject: safeSubjectName,
                             visibleLines: [.myScore],
                             chartStyle: .smooth,
                             showYAxisAsPercentage: false

@@ -80,8 +80,14 @@ struct AnalysisView: View {
                     List {
                         if groupBySubject {
                             // 按科目分组显示
-                            // 先获取所有有考试的科目
-                            let subjects = Array(Set(exams.compactMap { $0.subject })).sorted { $0.name < $1.name }
+                            // 先获取所有有考试的科目，并安全地处理科目名称
+                            let subjects = Array(Set(exams.compactMap { $0.subject }))
+                                .sorted { subjectA, subjectB in
+                                    // 安全地比较科目名称
+                                    let nameA = subjectA.name
+                                    let nameB = subjectB.name
+                                    return nameA < nameB
+                                }
                              
                             ForEach(subjects) { subject in
                                 Section(header: Text(subject.name)) {
@@ -192,6 +198,15 @@ struct AnalysisView: View {
             }
         }
     }
+    
+    // 安全地获取考试的科目名称
+    private func safeSubjectName(for exam: Exam) -> String {
+        if let subject = exam.subject {
+            return subject.name
+        } else {
+            return "未知科目"
+        }
+    }
 }
 
 // 创建一个简单的行视图来显示成绩
@@ -205,7 +220,7 @@ struct ExamRowView: View {
             VStack(alignment: .leading) {
                 Text(exam.name)
                     .font(.headline)
-                Text(exam.subject?.name ?? "未知科目")
+                Text(safeSubjectName)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -220,6 +235,15 @@ struct ExamRowView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+    
+    // 安全地获取考试的科目名称
+    private var safeSubjectName: String {
+        if let subject = exam.subject {
+            return subject.name
+        } else {
+            return "未知科目"
+        }
     }
 }
 

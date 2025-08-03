@@ -99,6 +99,13 @@ struct ManageSubjectsView: View {
             .toolbar {
                 // 取消按钮，用于关闭当前视图
                 ToolbarItem(placement: .cancellationAction) { Button("完成") { dismiss() } }
+                // 数据清理按钮（仅在非编辑模式下显示）
+                ToolbarItem(placement: .secondaryAction) {
+                    Button(action: triggerDataIntegrityCheck) {
+                        Image(systemName: "trash.circle")
+                    }
+                    .opacity(editMode.isEditing ? 0 : 1)
+                }
                 // 编辑按钮，用于切换编辑模式
                 ToolbarItem(placement: .primaryAction) { EditButton() }
                 // 添加按钮，用于添加新科目
@@ -149,11 +156,33 @@ struct ManageSubjectsView: View {
     /// - Parameter offsets: 要删除的科目索引集合。
     private func deleteSubject(at offsets: IndexSet) {
         logger.info("尝试删除科目，删除索引: \(offsets)")
+        
         // 遍历要删除的索引集合并删除对应的科目
-        offsets.forEach { 
-            let subject = subjects[$0]
+        offsets.forEach { index in
+            let subject = subjects[index]
+            // 在删除前记录日志，避免删除后访问失效对象
             logger.info("删除科目: \(subject.name)")
-            modelContext.delete(subjects[$0]) 
+            
+            // 检查是否有关联的考试、练习或模板数据并记录
+            let hasExams = !subject.exams.isEmpty
+            let hasPractices = !subject.practiceCollections.isEmpty
+            let hasTemplates = !subject.paperTemplates.isEmpty
+            if hasExams || hasPractices || hasTemplates {
+                logger.warning("科目 \(subject.name) 包含关联数据：考试(\(subject.exams.count))，练习组(\(subject.practiceCollections.count))，模板(\(subject.paperTemplates.count))")
+            }
+            
+            // 删除科目（SwiftData 会级联删除关联数据）
+            modelContext.delete(subject)
+        }
+        
+        // 保存上下文
+        do {
+            try modelContext.save()
+            logger.info("成功保存删除操作")
+        } catch {
+            logger.error("保存删除操作失败: \(error.localizedDescription)")
+            alertMessage = "保存失败：\(error.localizedDescription)"
+            showingAlert = true
         }
     }
     
@@ -186,6 +215,20 @@ struct ManageSubjectsView: View {
         subjectToEdit = nil
         isShowingSheet = true
     }
+    
+    /// 触发数据完整性检查函数，用于手动清理异常数据。
+    private func triggerDataIntegrityCheck() {
+        logger.info("用户手动触发数据完整性检查")
+        
+        // 设置标志，让MainTabView在下次启动时执行检查
+        UserDefaults.standard.set(true, forKey: "ShouldPerformDataIntegrityCheck")
+        
+        // 显示提示信息
+        alertMessage = "数据完整性检查已启用。请重启应用以执行清理操作。"
+        showingAlert = true
+        
+        logger.info("数据完整性检查标志已设置")
+    }
 }
 
 
@@ -193,22 +236,39 @@ struct ManageSubjectsView: View {
 
 /// [V21] 封装的科目行视图，用于在列表中显示单个科目的信息。
 struct SubjectRow: View {
-    /// 接收一个Subject对象
-    let subject: Subject
+    @Environment(\.modelContext) private var modelContext
+    
+    /// 接收一个Subject的持久化标识符
+    let subjectID: PersistentIdentifier
+    
+    init(subject: Subject) {
+        self.subjectID = subject.persistentModelID
+    }
     
     /// 视图的主体部分
     var body: some View {
         // 使用HStack水平排列内容
         HStack {
-            // 显示科目名称
-            Text(subject.name)
-                .font(.headline)
-            // 添加弹性空间
-            Spacer()
-            // 显示科目满分
-            Text("满分: \(subject.totalScore, specifier: "%.0f")")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            if let subject = modelContext.model(for: subjectID) as? Subject {
+                // 显示科目名称
+                Text(subject.name)
+                    .font(.headline)
+                // 添加弹性空间
+                Spacer()
+                // 显示科目满分
+                Text("满分: \(subject.totalScore, specifier: "%.0f")")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                // 如果科目不存在，显示占位内容
+                Text("科目已删除")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("--")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         // 设置垂直内边距
         .padding(.vertical, 4)

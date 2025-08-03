@@ -60,7 +60,7 @@ final class QuestionType {
 
 @Model
 final class Subject {
-    /// [V7] “科目”模型，是数据的枢纽。
+    /// [V7] "科目"模型，是数据的枢纽。
     var name: String
     var totalScore: Double
     
@@ -68,9 +68,21 @@ final class Subject {
     // [V22] 数字越小，排在越前面。
     @Attribute(.unique) var orderIndex: Int
     
-    /// [V7] 关系: 一个科目下可以有多个“卷子模板”。
-    @Relationship(deleteRule: .cascade)
+    /// [V7] 关系: 一个科目下可以有多个"卷子模板"。
+    @Relationship(deleteRule: .cascade, inverse: \PaperTemplate.subject)
     var paperTemplates: [PaperTemplate] = []
+    
+    /// 关系: 一个科目下可以有多个"考试"。
+    @Relationship(deleteRule: .cascade, inverse: \Exam.subject)
+    var exams: [Exam] = []
+    
+    /// 关系: 一个科目下可以有多个"练习组"。
+    @Relationship(deleteRule: .cascade, inverse: \PracticeCollection.subject)
+    var practiceCollections: [PracticeCollection] = []
+    
+    /// 关系: 一个科目下可以有多个"卷子结构"。
+    @Relationship(deleteRule: .nullify, inverse: \PaperStructure.subject)
+    var paperStructures: [PaperStructure] = []
     
     /// [V6] 计算属性：自动从其关联的模板中，汇总所有出现过的"考法"。
     var availableMethods: [TestMethod] {
@@ -95,19 +107,22 @@ final class Subject {
 
 @Model
 final class PaperStructure { 
+    var name: String // e.g., "高三数学期末卷", "英语周练卷" 
+    var isTemplate: Bool // 是否为通用模板 
+    
+    // 关系：一个卷子结构可以属于一个科目
+    var subject: Subject? 
+    
+    // 包含的题目定义 
+    @Relationship(deleteRule: .cascade) 
+    var questionDefinitions: [QuestionDefinition] = []
+    
     init(name: String, isTemplate: Bool, subject: Subject? = nil, questionDefinitions: [QuestionDefinition] = []) {
         self.name = name
         self.isTemplate = isTemplate
         self.subject = subject
         self.questionDefinitions = questionDefinitions
-    }
-    var name: String // e.g., "高三数学期末卷", "英语周练卷" 
-    var isTemplate: Bool // 是否为通用模板 
-    var subject: Subject? 
-    
-    // 包含的题目定义 
-    @Relationship(deleteRule: .cascade) 
-    var questionDefinitions: [QuestionDefinition] = [] 
+    } 
     
     // 计算属性：卷面总分 
     var totalScore: Double { 
@@ -281,6 +296,7 @@ final class Practice {
     
     /// [V18] 冗余存储科目信息，用于优化查询。
     /// 在创建时，会自动从其所属的collection中复制subject信息。
+    /// 注意：当Subject被删除时，这个引用会自动设为nil
     var subject: Subject?
     
     init(date: Date, score: Double, collection: PracticeCollection) {

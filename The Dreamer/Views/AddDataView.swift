@@ -300,8 +300,14 @@ struct AddDataView: View {
         guard let scoreValue = Double(scoreText) else {
             // 如果转换失败，打印错误信息
             // print用于在控制台输出信息
-            print("错误：分数格式不正确")
+            print("\(Date()) [AddDataView] 错误：分数格式不正确")
             return // 真实应用中应有弹窗提示
+        }
+        
+        // 验证分数不能为负数
+        guard scoreValue >= 0 else {
+            print("\(Date()) [AddDataView] 错误：分数不能为负数")
+            return
         }
         
         // 根据数据类型执行不同的保存操作
@@ -311,21 +317,47 @@ struct AddDataView: View {
                 // 保存考试数据
                 
                 // 确保已选择科目
-                guard let subject = selectedSubject else { return }
+                guard let subject = selectedSubject else { 
+                    print("\(Date()) [AddDataView] 错误：未选择科目")
+                    return 
+                }
+                
+                // 验证分数不能超过科目满分
+                guard scoreValue <= subject.totalScore else {
+                    print("\(Date()) [AddDataView] 错误：分数(\(scoreValue))超过科目满分(\(subject.totalScore))")
+                    return
+                }
                 
                 // 创建新的考试实例
-                let newExam = Exam(name: examName, date: date, totalScore: scoreValue, subject: subject)
-                modelContext.insert(newExam)
+                do {
+                    let newExam = Exam(name: examName, date: date, totalScore: scoreValue, subject: subject)
+                    modelContext.insert(newExam)
+                    try modelContext.save()
+                    print("\(Date()) [AddDataView] 成功保存考试：\(examName), 分数：\(scoreValue)")
+                } catch {
+                    print("\(Date()) [AddDataView] 保存考试失败：\(error.localizedDescription)")
+                    return
+                }
                 
             case .practice:
                 // 保存练习数据
                 
                 // 确保已选择练习类别
-                guard let collection = selectedPracticeCollection else { return }
+                guard let collection = selectedPracticeCollection else { 
+                    print("\(Date()) [AddDataView] 错误：未选择练习类别")
+                    return 
+                }
                 
                 // 创建新的练习实例
-                let newPractice = Practice(date: date, score: scoreValue, collection: collection)
-                modelContext.insert(newPractice)
+                do {
+                    let newPractice = Practice(date: date, score: scoreValue, collection: collection)
+                    modelContext.insert(newPractice)
+                    try modelContext.save()
+                    print("\(Date()) [AddDataView] 成功保存练习：\(collection.name), 分数：\(scoreValue)")
+                } catch {
+                    print("\(Date()) [AddDataView] 保存练习失败：\(error.localizedDescription)")
+                    return
+                }
             }
             
             // 关闭当前视图
