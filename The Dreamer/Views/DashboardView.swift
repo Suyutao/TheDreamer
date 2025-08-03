@@ -83,7 +83,8 @@ struct DashboardView: View {
              // 删除所有模型数据
              try modelContext.delete(model: Subject.self)
              try modelContext.delete(model: Exam.self)
-             try modelContext.delete(model: ExamCollection.self)
+             try modelContext.delete(model: ExamGroup.self)
+             try modelContext.delete(model: ExamSchedule.self)
              try modelContext.delete(model: Question.self)
              try modelContext.delete(model: QuestionResult.self)
              try modelContext.delete(model: PracticeCollection.self)

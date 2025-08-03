@@ -53,10 +53,11 @@
 - ✅ 编译通过，无运行时错误
 - ✅ FormHeader布局优化完成
 
-## 任务2: 设计并实现考试组模型与日期表
+## ✅ 任务2: 设计并实现考试组模型与日期表
 
 **负责人:** @架构师  
-**描述:** 在Models.swift中添加ExamGroup模型，支持多张日期表绑定
+**描述:** 在Models.swift中添加ExamGroup模型，支持多张日期表绑定  
+**状态:** 已完成 - ExamGroup和ExamSchedule模型已添加，Exam模型已更新
 
 ### 实现步骤:
 1. **添加 ExamGroup 模型**

@@ -324,18 +324,16 @@ extension BarChartView {
     
     /// 创建得分占比叠层图
     static func stackedScoreContribution(
-        examCollections: [ExamCollection],
+        examGroups: [ExamGroup],
         displayMode: BarDisplayMode = .absoluteScore
     ) -> BarChartView {
         let colors: [Color] = [.blue, .green, .orange, .red, .purple, .pink, .yellow, .cyan]
         var dataPoints: [BarChartDataPoint] = []
         
-        for collection in examCollections {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "MM/dd"
-            let categoryName = dateFormatter.string(from: collection.date)
+        for group in examGroups {
+            let categoryName = group.name
             
-            for (index, exam) in collection.exams.enumerated() {
+            for (index, exam) in group.exams.enumerated() {
                 let totalScore = exam.questions.reduce(0) { $0 + $1.score }
                 
                 let dataPoint = BarChartDataPoint(

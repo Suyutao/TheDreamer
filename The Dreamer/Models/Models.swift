@@ -191,7 +191,7 @@ final class Exam {
     var questions: [Question] = []
     
     // 关系
-    var collection: ExamCollection? // 可选，属于某个联考
+    var examGroup: ExamGroup? // 可选，属于某个考试组
     
     // 新增：与卷子结构的关联
     var paperStructure: PaperStructure? // 记录本次考试使用的卷子结构
@@ -209,25 +209,46 @@ final class Exam {
         self.totalScore = totalScore
         self.subject = subject
     }
+    
+    /// 计算属性：判断是否为考试组中的考试
+    var isGroupExam: Bool { examGroup != nil }
 }
 
 @Model
-final class ExamCollection { 
-    var name: String 
-    var date: Date 
+final class ExamGroup {
+    var name: String
+    var semester: String
+    var createdDate: Date
     
-    @Relationship(inverse: \Exam.collection) 
-    var exams: [Exam] = [] 
+    // 关联的考试
+    @Relationship(deleteRule: .cascade, inverse: \Exam.examGroup)
+    var exams: [Exam] = []
     
-    var classRank: RankData? 
-    var gradeRank: RankData? 
+    // 关联的日期表
+    @Relationship(deleteRule: .cascade, inverse: \ExamSchedule.examGroup)
+    var schedules: [ExamSchedule] = []
     
-    init(name: String, date: Date, classRank: RankData? = nil, gradeRank: RankData? = nil) { 
-        self.name = name 
-        self.date = date 
-        self.classRank = classRank 
-        self.gradeRank = gradeRank 
-    } 
+    init(name: String, semester: String) {
+        self.name = name
+        self.semester = semester
+        self.createdDate = Date()
+    }
+}
+
+@Model
+final class ExamSchedule {
+    var date: Date
+    var dayNumber: Int // 第几天
+    var subjects: [String] // 当天考试科目列表
+    
+    // 关联的考试组
+    var examGroup: ExamGroup?
+    
+    init(date: Date, dayNumber: Int, subjects: [String]) {
+        self.date = date
+        self.dayNumber = dayNumber
+        self.subjects = subjects
+    }
 }
 
 

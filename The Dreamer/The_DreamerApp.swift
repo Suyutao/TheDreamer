@@ -52,9 +52,10 @@ struct TheDreamerApp: App {
             QuestionDefinition.self,
             QuestionTemplate.self,
             
-            // 考试实例、联考实例与题目实例
+            // 考试实例、考试组与题目实例
             Exam.self,
-            ExamCollection.self,
+            ExamGroup.self,
+            ExamSchedule.self,
             Question.self,
             QuestionResult.self,
             
