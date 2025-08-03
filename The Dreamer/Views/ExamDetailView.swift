@@ -203,10 +203,10 @@ struct ExamDetailView: View {
     
     // 创建多个示例考试来展示折线图
     let exams = [
-        Exam(name: "第一次月考", date: Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date(), totalScore: 135.0, subject: subject),
-        Exam(name: "第二次月考", date: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(), totalScore: 142.5, subject: subject),
-        Exam(name: "期中考试", date: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date(), totalScore: 145.5, subject: subject),
-        Exam(name: "第三次月考", date: Date(), totalScore: 148.0, subject: subject)
+        Exam(name: "第一次月考", date: Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date(), score: 135.0, totalScore: 150.0, subject: subject),
+            Exam(name: "第二次月考", date: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(), score: 142.5, totalScore: 150.0, subject: subject),
+            Exam(name: "期中考试", date: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date(), score: 145.5, totalScore: 150.0, subject: subject),
+            Exam(name: "第三次月考", date: Date(), score: 148.0, totalScore: 150.0, subject: subject)
     ]
     
     exams.forEach { context.insert($0) }

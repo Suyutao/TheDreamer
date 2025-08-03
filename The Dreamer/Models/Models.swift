@@ -184,6 +184,7 @@ final class Exam {
     /// [V7] "考试"实例模型，代表一次真实发生的、有得分的考试事件。
     var name: String
     var date: Date
+    var score: Double = 0.0
     var totalScore: Double
     var subject: Subject?
     
@@ -203,9 +204,10 @@ final class Exam {
     var classRank: RankData?
     var gradeRank: RankData?
     
-    init(name: String, date: Date, totalScore: Double, subject: Subject?) {
+    init(name: String, date: Date, score: Double = 0.0, totalScore: Double, subject: Subject?) {
         self.name = name
         self.date = date
+        self.score = score
         self.totalScore = totalScore
         self.subject = subject
     }

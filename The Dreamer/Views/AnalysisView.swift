@@ -57,8 +57,8 @@ struct AnalysisView: View {
     // 定义一个状态变量，用于控制添加数据界面是否显示
     @State private var showingAddDataSheet = false
     
-    // 定义一个状态变量，用于控制管理科目与模板界面是否显示
-    @State private var showingManageSheet = false
+    // 定义一个状态变量，用于控制设置界面是否显示
+    @State private var showingSettingsSheet = false
     
     // 添加状态变量来控制删除确认对话框
     @State private var showingDeleteAlert = false
@@ -146,8 +146,8 @@ struct AnalysisView: View {
                         
                         Divider()
                         
-                        Button(action: { showingManageSheet = true }) {
-                            Label("管理科目与模板...", systemImage: "gearshape.fill")
+                        Button(action: { showingSettingsSheet = true }) {
+                            Label("设置", systemImage: "gearshape.fill")
                         }
                         
                     } label: {
@@ -187,9 +187,9 @@ struct AnalysisView: View {
                 AddDataView(dataType: $addableDataType, examToEdit: nil)
                     .environment(\.modelContext, modelContext)
             }
-            // 管理科目与模板界面的弹窗
-            .sheet(isPresented: $showingManageSheet) {
-                ManageSubjectsView()
+            // 设置界面的弹窗
+            .sheet(isPresented: $showingSettingsSheet) {
+                SettingsView()
                     .environment(\.modelContext, modelContext)
             }
             // 删除确认对话框

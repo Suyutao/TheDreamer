@@ -88,6 +88,12 @@ struct AddDataView: View {
     // PracticeCollection?表示PracticeCollection类型的可选值（可以为nil）
     @State private var selectedPracticeCollection: PracticeCollection?
     
+    // 存储用户选择的考试组
+    @State private var selectedExamGroup: ExamGroup?
+    
+    // 控制考试组选择Sheet的显示
+    @State private var showingExamGroupSelection = false
+    
     // Queries（数据查询）
     // @Query是SwiftData提供的属性包装器，用于自动查询数据
     
@@ -100,6 +106,9 @@ struct AddDataView: View {
     // \PracticeCollection.name表示按PracticeCollection结构体的name属性排序
     // 从数据库中查询所有练习类别，并按名称排序
     @Query(sort: [SortDescriptor(\PracticeCollection.name)]) private var practiceCollections: [PracticeCollection]
+    
+    // 从数据库中查询所有考试组，并按创建日期排序
+    @Query(sort: [SortDescriptor(\ExamGroup.createdDate, order: .reverse)]) private var examGroups: [ExamGroup]
 
     // MARK: - Main Body
     // 定义视图的主要内容
@@ -177,11 +186,15 @@ struct AddDataView: View {
                 date = exam.date
                 scoreText = String(Int(exam.totalScore))
                 selectedSubject = exam.subject
+                selectedExamGroup = exam.examGroup
                 // 编辑模式下强制设置为考试类型
                 if dataType == nil {
                     dataType = .exam
                 }
             }
+        }
+        .sheet(isPresented: $showingExamGroupSelection) {
+            ExamGroupSelectionView(selectedGroup: $selectedExamGroup)
         }
     }
   
@@ -196,18 +209,37 @@ struct AddDataView: View {
         // 创建一个表单区域，标题为"考试信息"
         // Section用于在Form中创建一个带标题的区域
         Section(header: Text("考试信息")) {
+            // 考试组选择（添加模式和编辑模式都显示）
+            Button(action: {
+                showingExamGroupSelection = true
+            }) {
+                HStack {
+                    Text("考试组")
+                    Spacer()
+                    Text(selectedExamGroup?.name ?? "单科考试")
+                        .foregroundColor(.secondary)
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+            }
+            .foregroundColor(.primary)
+            
             // 创建文本输入框，用于输入考试名称
             // TextField用于创建文本输入框
             // "考试名称"是占位符文本
             // text: $examName绑定到examName状态变量
             TextField("考试名称", text: $examName)
             
-            // 创建日期选择器，用于选择考试日期
-            // DatePicker用于创建日期选择器
-            // "日期"是标签文本
-            // selection: $date绑定到date状态变量
-            // displayedComponents: .date表示只显示日期部分
-            DatePicker("日期", selection: $date, displayedComponents: .date)
+            // 日期选择器：只有在单科考试时才显示
+            if selectedExamGroup == nil {
+                // 创建日期选择器，用于选择考试日期
+                // DatePicker用于创建日期选择器
+                // "日期"是标签文本
+                // selection: $date绑定到date状态变量
+                // displayedComponents: .date表示只显示日期部分
+                DatePicker("日期", selection: $date, displayedComponents: .date)
+            }
             
             // 科目选择：编辑模式下显示为只读，添加模式下可选择
             if isEditingMode {
@@ -370,10 +402,12 @@ struct AddDataView: View {
                 exam.name = examName
                 exam.date = date
                 exam.totalScore = scoreValue
+                // 更新考试组关联
+                exam.examGroup = selectedExamGroup
                 // 注意：编辑模式下不允许更改科目，所以不更新subject
                 
                 try modelContext.save()
-                print("\(Date()) [AddDataView] 成功更新考试：\(examName), 分数：\(scoreValue)")
+                print("\(Date()) [AddDataView] 成功更新考试：\(examName), 分数：\(scoreValue), 考试组：\(selectedExamGroup?.name ?? "无")")
             } catch {
                 print("\(Date()) [AddDataView] 更新考试失败：\(error.localizedDescription)")
                 return
@@ -389,10 +423,12 @@ struct AddDataView: View {
                 
                 // 创建新的考试实例
                 do {
-                    let newExam = Exam(name: examName, date: date, totalScore: scoreValue, subject: subject)
+                    let newExam = Exam(name: examName, date: date, score: scoreValue, totalScore: subject.totalScore, subject: subject)
+                    // 关联考试组（如果选择了的话）
+                    newExam.examGroup = selectedExamGroup
                     modelContext.insert(newExam)
                     try modelContext.save()
-                    print("\(Date()) [AddDataView] 成功保存考试：\(examName), 分数：\(scoreValue)")
+                    print("\(Date()) [AddDataView] 成功保存考试：\(examName), 分数：\(scoreValue), 考试组：\(selectedExamGroup?.name ?? "无")")
                 } catch {
                     print("\(Date()) [AddDataView] 保存考试失败：\(error.localizedDescription)")
                     return
@@ -445,7 +481,7 @@ struct AddDataView: View {
     let subject = Subject(name: "数学", totalScore: 150, orderIndex: 0)
     context.insert(subject)
     
-    let exam = Exam(name: "期中考试", date: Date(), totalScore: 135.0, subject: subject)
+    let exam = Exam(name: "期中考试", date: Date(), score: 135.0, totalScore: 150.0, subject: subject)
     context.insert(exam)
     
     try? context.save()
