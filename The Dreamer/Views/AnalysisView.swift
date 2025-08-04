@@ -191,7 +191,11 @@ struct AnalysisView: View {
                     // 非编辑模式左侧：设置按钮
                     ToolbarItem(placement: .topBarLeading) {
                         Button(action: { showingSettingsSheet = true }) {
+<<<<<<< HEAD
                             Image(systemName: "gearshape.fill")
+=======
+                            Image(systemName: "gear")
+>>>>>>> 5d42edf (feat(考试管理): 添加批量操作考试功能)
                         }
                     }
                     
