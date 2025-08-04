@@ -15,7 +15,7 @@ Original Apple code © 2024 Apple Inc.
 See ACKNOWLEDGEMENTS.md for detailed attribution.
 
 If this project helps you, please retain this notice in your derivative works
-and consider starring the original repository: https://github.com/suyutao/The-Dreamer
+and consider starring the original repository: https://github.com/suyutao/TheDreamer
 
 For technical discussions or collaboration opportunities, feel free to reach out.
 

@@ -15,6 +15,6 @@ The Dreamer
 详细归属信息请见 ACKNOWLEDGEMENTS.md。
 
 如果本项目对您有帮助，请在您的衍生作品中保留此通知，
-并考虑为原始仓库点个Star：https://github.com/suyutao/The-Dreamer
+并考虑为原始仓库点个Star：https://github.com/suyutao/TheDreamer
 
 如需技术讨论或合作机会，欢迎联系。
