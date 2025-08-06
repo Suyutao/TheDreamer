@@ -158,8 +158,8 @@ struct AddDataView: View {
             .toolbar {
                 // 在右上角添加保存按钮
                 // ToolbarItem定义工具栏上的一个项目
-                // placement: .topBarTrailing表示放置在右上角
-                ToolbarItem(placement: .topBarTrailing) {
+                // placement: .primaryAction表示放置在右上角
+                ToolbarItem(placement: .primaryAction) {
                     // 创建保存按钮，点击时调用saveData函数
                     // Button用于创建一个可点击的按钮
                     // "保存"是按钮显示的文本
@@ -191,6 +191,12 @@ struct AddDataView: View {
                 if dataType == nil {
                     dataType = .exam
                 }
+            }
+        }
+        .onChange(of: selectedExamGroup) { oldValue, newValue in
+            // 当考试组选择改变时，自动更新考试名称
+            if !isEditingMode {
+                examName = generateExamName(examGroup: newValue, subject: selectedSubject)
             }
         }
         .sheet(isPresented: $showingExamGroupSelection) {
@@ -225,11 +231,19 @@ struct AddDataView: View {
             }
             .foregroundColor(.primary)
             
-            // 创建文本输入框，用于输入考试名称
-            // TextField用于创建文本输入框
-            // "考试名称"是占位符文本
-            // text: $examName绑定到examName状态变量
-            TextField("考试名称", text: $examName)
+            // 考试名称输入：大考时自动生成，单科考试时手动输入
+            if selectedExamGroup != nil {
+                // 大考模式：显示自动生成的名称，禁用手动输入
+                HStack {
+                    Text("考试名称")
+                    Spacer()
+                    Text(examName.isEmpty ? "请先选择科目" : examName)
+                        .foregroundColor(examName.isEmpty ? .secondary : .primary)
+                }
+            } else {
+                // 单科考试模式：允许手动输入
+                TextField("考试名称", text: $examName)
+            }
             
             // 日期选择器：只有在单科考试时才显示
             if selectedExamGroup == nil {
@@ -261,13 +275,21 @@ struct AddDataView: View {
                         Text(subject.name).tag(subject as Subject?)
                     }
                 }
+                .onChange(of: selectedSubject) { oldValue, newValue in
+                    // 当科目选择改变时，如果是大考模式，自动更新考试名称
+                    if selectedExamGroup != nil {
+                        examName = generateExamName(examGroup: selectedExamGroup, subject: newValue)
+                    }
+                }
             }
             
             // 创建文本输入框，用于输入成绩
             TextField(selectedSubject != nil ? "成绩（满分\(Int(selectedSubject!.totalScore))）" : "成绩", text: $scoreText)
                 // 设置键盘类型为数字键盘
                 // .keyboardType(.decimalPad)设置键盘类型为带小数点的数字键盘
+                #if os(iOS)
                 .keyboardType(.decimalPad)
+                #endif
                 // 添加输入验证和格式化
                 .onChange(of: scoreText) { oldValue, newValue in
                     // 过滤非数字字符（保留小数点）
@@ -305,7 +327,9 @@ struct AddDataView: View {
             // 创建文本输入框，用于输入成绩
             TextField("成绩", text: $scoreText)
                 // 设置键盘类型为数字键盘
+                #if os(iOS)
                 .keyboardType(.decimalPad)
+                #endif
                 // 添加输入验证和格式化
                 .onChange(of: scoreText) { oldValue, newValue in
                     // 过滤非数字字符（保留小数点）
@@ -328,6 +352,17 @@ struct AddDataView: View {
     // 判断是否为编辑模式
     private var isEditingMode: Bool {
         examToEdit != nil
+    }
+    
+    // 自动起名算法：为大考自动生成名称
+    private func generateExamName(examGroup: ExamGroup?, subject: Subject?) -> String {
+        guard let group = examGroup, let subject = subject else {
+            // 单科考试保持手动输入或使用常用名称
+            return ""
+        }
+        
+        // 大考自动起名: 学期+大考名+" - "+学科
+        return "\(group.semester)\(group.name) - \(subject.name)"
     }
     
     // 计算导航栏标题，根据数据类型和编辑模式返回不同的标题
@@ -373,8 +408,12 @@ struct AddDataView: View {
             
             switch type {
             case .exam:
-                // 对于考试，需要填写考试名称和选择科目
-                if examName.isEmpty || selectedSubject == nil { return true }
+                // 对于考试，需要选择科目
+                if selectedSubject == nil { return true }
+                
+                // 大考模式下，考试名称自动生成，不需要手动输入验证
+                // 单科考试模式下，需要手动输入考试名称
+                if selectedExamGroup == nil && examName.isEmpty { return true }
                 
                 // 验证分数不能超过科目满分
                 if let subject = selectedSubject, scoreValue > subject.totalScore {

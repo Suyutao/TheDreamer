@@ -69,6 +69,49 @@ struct AnalysisView: View {
     @State private var deleteIndexSet: IndexSet? = nil
     @State private var deleteFromSubjectExams: [Exam]? = nil
     
+    // MARK: - 撤销机制相关状态
+    @StateObject private var undoManager = CustomUndoManager()
+    @State private var showingUndoToast = false
+    @State private var undoMessage = ""
+    @State private var deletedExams: [Exam] = []
+    
+    /// 删除单个考试并显示撤销提示
+    private func deleteSingleExam(_ exam: Exam) {
+        // 保存删除的考试信息用于撤销
+        deletedExams = [exam]
+        
+        // 从数据库中删除
+        modelContext.delete(exam)
+        
+        // 显示撤销提示
+        undoMessage = "已删除考试记录"
+        showingUndoToast = true
+        
+        // 设置撤销操作
+        undoManager.registerUndo(data: exam) {
+            self.restoreDeletedExams()
+        }
+        
+        print("[\(Date())] 删除考试: \(exam.name)，已设置撤销机制")
+    }
+    
+    /// 恢复已删除的考试
+    private func restoreDeletedExams() {
+        for exam in deletedExams {
+            modelContext.insert(exam)
+        }
+        
+        do {
+            try modelContext.save()
+            print("[\(Date())] 成功恢复 \(deletedExams.count) 个考试记录")
+        } catch {
+            print("[\(Date())] 恢复考试记录时发生错误: \(error)")
+        }
+        
+        deletedExams.removeAll()
+        showingUndoToast = false
+    }
+    
     // 编辑模式相关状态变量
     @State private var isEditMode = false
     @State private var selectedExams: Set<Exam.ID> = []
@@ -121,6 +164,14 @@ struct AnalysisView: View {
                                                 // 显示考试记录的行视图
                                                 ExamRowView(exam: exam)
                                             }
+                                            .swipeActions(edge: .trailing) {
+                                                Button(role: .destructive) {
+                                                    // 单个考试删除：直接删除并显示撤销提示
+                                                    deleteSingleExam(exam)
+                                                } label: {
+                                                    Label("删除", systemImage: "trash")
+                                                }
+                                            }
                                         }
                                     }
                                     // 为列表项添加删除功能
@@ -149,6 +200,14 @@ struct AnalysisView: View {
                                     } else {
                                         NavigationLink(destination: ExamDetailView(exam: exam)) {
                                             ExamRowView(exam: exam)
+                                        }
+                                        .swipeActions(edge: .trailing) {
+                                            Button(role: .destructive) {
+                                                // 单个考试删除：直接删除并显示撤销提示
+                                                deleteSingleExam(exam)
+                                            } label: {
+                                                Label("删除", systemImage: "trash")
+                                            }
                                         }
                                     }
                                 }
@@ -182,7 +241,7 @@ struct AnalysisView: View {
                     }
                     
                     // 右上角：完成按钮
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .primaryAction) {
                         Button("完成", systemImage: "checkmark", role: .cancel) {
                             exitEditMode()
                         }
@@ -191,16 +250,12 @@ struct AnalysisView: View {
                     // 非编辑模式左侧：设置按钮
                     ToolbarItem(placement: .topBarLeading) {
                         Button(action: { showingSettingsSheet = true }) {
-<<<<<<< HEAD
-                            Image(systemName: "gearshape.fill")
-=======
                             Image(systemName: "gear")
->>>>>>> 5d42edf (feat(考试管理): 添加批量操作考试功能)
                         }
                     }
                     
                     // 非编辑模式右侧：添加和更多菜单
-                    ToolbarItemGroup(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .primaryAction) {
                         Menu {
                             Button {
                                 addableDataType = .exam
@@ -291,10 +346,45 @@ struct AnalysisView: View {
             .alert("确认删除", isPresented: $showingDeleteAlert) {
                 Button("取消", role: .cancel) { }
                 Button("删除", role: .destructive) {
-                    performDelete()
+                    if isEditMode {
+                        // 批量删除模式
+                        performBatchDelete()
+                    } else {
+                        // 单个删除模式（从列表删除）
+                        performDelete()
+                    }
                 }
             } message: {
-                Text("确定要删除这些考试记录吗？此操作无法撤销。")
+                if isEditMode {
+                    let count = selectedExams.count
+                    if count > 1 {
+                        Text("确定要删除这 \(count) 个考试记录吗？此操作无法撤销。")
+                    } else {
+                        Text("确定要删除这个考试记录吗？此操作无法撤销。")
+                    }
+                } else {
+                    if let indices = deleteIndexSet {
+                        let count = indices.count
+                        if count > 1 {
+                            Text("确定要删除这 \(count) 个考试记录吗？此操作无法撤销。")
+                        } else {
+                            Text("确定要删除这个考试记录吗？此操作无法撤销。")
+                        }
+                    } else {
+                        Text("确定要删除这些考试记录吗？此操作无法撤销。")
+                    }
+                }
+            }
+            // 撤销提示条覆盖层
+            .overlay(alignment: .bottom) {
+                UndoToastView(
+                    message: undoMessage,
+                    onUndo: {
+                        undoManager.performUndo()
+                    },
+                    isShowing: $showingUndoToast
+                )
+                .animation(.easeInOut(duration: 0.3), value: showingUndoToast)
             }
         }
     }
@@ -348,6 +438,21 @@ struct AnalysisView: View {
     /// 批量删除选中的考试
     private func batchDeleteExams() {
         let examsToDelete = exams.filter { selectedExams.contains($0.id) }
+        let deleteCount = examsToDelete.count
+        
+        // 设置删除信息用于确认对话框
+        deleteIndexSet = IndexSet(0..<deleteCount)
+        deleteFromSubjectExams = nil
+        
+        // 显示确认对话框
+        showingDeleteAlert = true
+        
+        print("[\(Date())] 准备批量删除 \(deleteCount) 个考试记录")
+    }
+    
+    /// 执行批量删除操作（从确认对话框调用）
+    private func performBatchDelete() {
+        let examsToDelete = exams.filter { selectedExams.contains($0.id) }
         
         for exam in examsToDelete {
             modelContext.delete(exam)
@@ -355,7 +460,7 @@ struct AnalysisView: View {
         
         do {
             try modelContext.save()
-            print("[\(Date())] 批量删除考试成功")
+            print("[\(Date())] 批量删除 \(examsToDelete.count) 个考试记录成功")
         } catch {
             print("[\(Date())] 批量删除考试时发生错误: \(error)")
         }
@@ -363,14 +468,7 @@ struct AnalysisView: View {
         exitEditMode()
     }
     
-    // 安全地获取考试的科目名称
-    private func safeSubjectName(for exam: Exam) -> String {
-        if let subject = exam.subject {
-            return subject.name
-        } else {
-            return "未知科目"
-        }
-    }
+
 }
 
 // 创建一个简单的行视图来显示成绩
