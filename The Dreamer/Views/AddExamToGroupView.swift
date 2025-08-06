@@ -50,15 +50,17 @@ struct AddExamToGroupView: View {
                 }
             }
             .navigationTitle("添加考试")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("取消") {
                         dismiss()
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("添加 (\(selectedExams.count))") {
                         addSelectedExamsToGroup()
                     }

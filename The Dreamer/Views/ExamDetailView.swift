@@ -171,10 +171,12 @@ struct ExamDetailView: View {
         // 设置导航栏标题为考试名称
         .navigationTitle(exam.name)
         // 使用大标题模式
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
+        #endif
         // 添加工具栏按钮
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .primaryAction) {
                 Button("编辑", systemImage: "pencil") {
                     showingEditView = true
                 }

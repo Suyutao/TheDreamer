@@ -55,7 +55,9 @@ struct ManageSubjectsView: View {
     @State private var subjectToEdit: Subject?
     
     /// 状态变量，控制列表的编辑模式。
+    #if os(iOS)
     @State private var editMode: EditMode = .inactive
+    #endif
     
     /// 状态变量，控制警告弹窗是否显示。
     @State private var showingAlert = false
@@ -82,10 +84,23 @@ struct ManageSubjectsView: View {
                     List {
                         // 遍历所有科目
                         ForEach(subjects) { subject in
-                            // 导航链接到科目详情视图
-                            NavigationLink(destination: SubjectDetailView(subject: subject)) {
-                                // 显示科目行视图
+                            ZStack {
+                                NavigationLink(destination: SubjectDetailView(subject: subject)) {
+                                    EmptyView()
+                                }
+                                .opacity(0)
+                                
                                 SubjectRow(subject: subject)
+                                    .contentShape(Rectangle())
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    if let index = subjects.firstIndex(where: { $0.id == subject.id }) {
+                                        deleteSubject(at: IndexSet(integer: index))
+                                    }
+                                } label: {
+                                    Label("删除", systemImage: "trash")
+                                }
                             }
                         }
                         // 为列表添加删除功能
@@ -104,15 +119,21 @@ struct ManageSubjectsView: View {
                     Button(action: triggerDataIntegrityCheck) {
                         Image(systemName: "trash.circle")
                     }
+                    #if os(iOS)
                     .opacity(editMode.isEditing ? 0 : 1)
+                    #endif
                 }
                 // 编辑按钮，用于切换编辑模式
+                #if os(iOS)
                 ToolbarItem(placement: .primaryAction) { EditButton() }
+                #endif
                 // 添加按钮，用于添加新科目
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: showAddSheet) { Image(systemName: "plus") }
                         // 在编辑模式下隐藏添加按钮
+                        #if os(iOS)
                         .opacity(editMode.isEditing ? 0 : 1)
+                        #endif
                 }
             }
             // 设置表单页面
@@ -124,7 +145,9 @@ struct ManageSubjectsView: View {
                 Alert(title: Text("提醒"), message: Text(alertMessage), dismissButton: .default(Text("好")))
             }
             // 设置编辑模式环境值
+            #if os(iOS)
             .environment(\.editMode, $editMode)
+            #endif
         }
     }
 
@@ -157,21 +180,70 @@ struct ManageSubjectsView: View {
     private func deleteSubject(at offsets: IndexSet) {
         logger.info("尝试删除科目，删除索引: \(offsets)")
         
-        // 遍历要删除的索引集合并删除对应的科目
+        // 收集要删除的科目信息用于确认对话框
+        var subjectsToDelete: [(subject: Subject, examCount: Int, practiceCount: Int, templateCount: Int)] = []
+        
         offsets.forEach { index in
             let subject = subjects[index]
-            // 在删除前记录日志，避免删除后访问失效对象
-            logger.info("删除科目: \(subject.name)")
+            let examCount = subject.exams.count
+            let practiceCount = subject.practiceCollections.count
+            let templateCount = subject.paperTemplates.count
             
-            // 检查是否有关联的考试、练习或模板数据并记录
-            let hasExams = !subject.exams.isEmpty
-            let hasPractices = !subject.practiceCollections.isEmpty
-            let hasTemplates = !subject.paperTemplates.isEmpty
-            if hasExams || hasPractices || hasTemplates {
-                logger.warning("科目 \(subject.name) 包含关联数据：考试(\(subject.exams.count))，练习组(\(subject.practiceCollections.count))，模板(\(subject.paperTemplates.count))")
+            subjectsToDelete.append((subject, examCount, practiceCount, templateCount))
+        }
+        
+        // 如果有关联数据，显示详细的删除确认对话框
+        let hasRelatedData = subjectsToDelete.contains { $0.examCount > 0 || $0.practiceCount > 0 || $0.templateCount > 0 }
+        
+        if hasRelatedData {
+            // 构建详细的警告消息
+            var warningMessage = "删除科目将同时删除以下数据：\n\n"
+            
+            for item in subjectsToDelete {
+                warningMessage += "• \(item.subject.name)\n"
+                if item.examCount > 0 {
+                    warningMessage += "  - \(item.examCount) 场考试\n"
+                }
+                if item.practiceCount > 0 {
+                    warningMessage += "  - \(item.practiceCount) 个练习组\n"
+                }
+                if item.templateCount > 0 {
+                    warningMessage += "  - \(item.templateCount) 个模板\n"
+                }
+                warningMessage += "\n"
             }
             
-            // 删除科目（SwiftData 会级联删除关联数据）
+            warningMessage += "此操作无法撤销，请确认是否继续？"
+            
+            // 显示确认对话框
+            let alert = UIAlertController(
+                title: "确认删除科目",
+                message: warningMessage,
+                preferredStyle: .alert
+            )
+            
+            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            alert.addAction(UIAlertAction(title: "了解后果，确认删除", style: .destructive) { _ in
+                self.performSubjectDeletion(subjectsToDelete.map { $0.subject })
+            })
+            
+            // 获取当前的UIViewController来显示alert
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootViewController = window.rootViewController {
+                rootViewController.present(alert, animated: true)
+            }
+        } else {
+            // 没有关联数据，直接删除
+            performSubjectDeletion(subjectsToDelete.map { $0.subject })
+        }
+    }
+    
+    /// 执行科目删除操作
+    /// - Parameter subjects: 要删除的科目列表
+    private func performSubjectDeletion(_ subjects: [Subject]) {
+        subjects.forEach { subject in
+            logger.info("删除科目: \(subject.name)")
             modelContext.delete(subject)
         }
         

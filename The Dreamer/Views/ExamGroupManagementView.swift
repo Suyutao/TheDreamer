@@ -39,9 +39,20 @@ struct ExamGroupManagementView: View {
                 } else {
                     List {
                         ForEach(examGroups) { examGroup in
-                            ExamGroupRowView(examGroup: examGroup) {
-                                selectedExamGroup = examGroup
-                                showingExamGroupDetail = true
+                            ZStack {
+                                Button(action: {
+                                    selectedExamGroup = examGroup
+                                    showingExamGroupDetail = true
+                                }) {
+                                    EmptyView()
+                                }
+                                .opacity(0)
+                                
+                                ExamGroupRowView(examGroup: examGroup) {
+                                    selectedExamGroup = examGroup
+                                    showingExamGroupDetail = true
+                                }
+                                .contentShape(Rectangle())
                             }
                         }
                         .onDelete(perform: deleteExamGroups)
@@ -50,7 +61,7 @@ struct ExamGroupManagementView: View {
             }
             .navigationTitle("考试组管理")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("添加") {
                         showingAddExamGroup = true
                     }
@@ -134,6 +145,7 @@ struct ExamGroupRowView: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(PlainButtonStyle())
+        .contentShape(Rectangle())
     }
     
     private var totalScore: Double {

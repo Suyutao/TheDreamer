@@ -47,15 +47,17 @@ struct ExamGroupDetailView: View {
                 .padding()
             }
             .navigationTitle(examGroup.name)
-            .navigationBarTitleDisplayMode(.large)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("关闭") {
                         dismiss()
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button("编辑信息") {
                             showingEditSheet = true
@@ -106,7 +108,7 @@ struct ExamGroupDetailView: View {
                 InfoRow(label: "考试数量", value: "\(examGroup.exams.count) 场")
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.gray.opacity(0.1))
             .cornerRadius(10)
         }
     }
@@ -248,7 +250,7 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(10)
     }
 }
@@ -295,7 +297,7 @@ struct ExamRowInGroupView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(10)
         .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
     }

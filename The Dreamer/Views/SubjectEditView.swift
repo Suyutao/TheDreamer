@@ -103,11 +103,15 @@ struct SubjectEditView: View {
                 Section(header: Text("科目信息")) {
                     TextField("科目名称", text: $name)
                     TextField("满分 (1-1000)", text: $totalScoreText)
+                        #if os(iOS)
                         .keyboardType(.decimalPad)
+                        #endif
                 }
             }
             .navigationTitle(navigationTitleString)
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }

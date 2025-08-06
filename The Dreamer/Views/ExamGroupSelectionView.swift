@@ -139,7 +139,9 @@ struct ExamGroupSelectionView: View {
                 }
             }
             .navigationTitle(isBatchMode ? "添加到考试组" : "选择考试组")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") {
@@ -222,9 +224,11 @@ struct AddExamGroupView: View {
                 }
             }
             .navigationTitle("添加考试组")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("保存") {
                         saveExamGroup()
                     }

@@ -21,60 +21,70 @@ struct SettingsView: View {
     // 状态变量控制各个管理页面的显示
     @State private var showingManageSubjects = false
     @State private var showingManageExamGroups = false
-    @State private var showingClearDataAlert = false
+    @State private var showingDebugSettings = false
+    @State private var showingAbout = false
     
     var body: some View {
         NavigationStack {
             List {
-                // 数据管理分组
-                Section("数据管理") {
-                    // 科目管理
-                    Button(action: { showingManageSubjects = true }) {
-                        HStack {
-                            Image(systemName: "book.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("科目管理")
-                                    .foregroundColor(.primary)
-                                Text("添加、编辑或删除科目")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                    Section("数据管理") {
+                        // 科目管理
+                        ZStack {
+                            Button(action: { showingManageSubjects = true }) {
+                                EmptyView()
                             }
+                            .opacity(0)
                             
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    // 考试组管理
-                    Button(action: { showingManageExamGroups = true }) {
-                        HStack {
-                            Image(systemName: "folder.fill")
-                                .foregroundColor(.orange)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("考试组管理")
-                                    .foregroundColor(.primary)
-                                Text("管理联考和考试组")
-                                    .font(.caption)
+                            HStack {
+                                Image(systemName: "book.fill")
+                                    .foregroundColor(.blue)
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("科目管理")
+                                        .foregroundColor(.primary)
+                                    Text("添加、编辑或删除科目")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
                                     .foregroundColor(.secondary)
+                                    .font(.caption)
                             }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
+                            .contentShape(Rectangle())
                         }
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                        
+                        // 考试组管理
+                        ZStack {
+                            Button(action: { showingManageExamGroups = true }) {
+                                EmptyView()
+                            }
+                            .opacity(0)
+                            
+                            HStack {
+                                Image(systemName: "folder.fill")
+                                    .foregroundColor(.orange)
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("考试组管理")
+                                        .foregroundColor(.primary)
+                                    Text("管理联考和考试组")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                            .contentShape(Rectangle())
+                        }
                     
                     // 模板管理（未来功能）
                     HStack {
@@ -98,40 +108,77 @@ struct SettingsView: View {
                     }
                 }
                 
-                // 危险操作分组
-                Section("危险操作") {
-                    // 清除所有数据
-                    Button(action: {
-                        showingClearDataAlert = true
-                    }) {
+                // 调试功能分组
+                Section("调试功能") {
+                    // 调试设置入口
+                    ZStack {
+                        Button(action: { showingDebugSettings = true }) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
                         HStack {
-                            Image(systemName: "trash.fill")
-                                .foregroundColor(.red)
+                            Image(systemName: "wrench.and.screwdriver.fill")
+                                .foregroundColor(.orange)
                                 .frame(width: 24)
                             
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("清除所有数据")
-                                    .foregroundColor(.red)
-                                Text("删除所有科目、考试、练习等数据")
+                                Text("调试设置")
+                                    .foregroundColor(.primary)
+                                Text("清除数据、调试信息等")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             
                             Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
                         }
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 
                 // 应用信息分组
                 Section("关于") {
+                    // 关于应用详情
+                    ZStack {
+                        Button(action: { showingAbout = true }) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(.blue)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("关于 The Dreamer")
+                                    .foregroundColor(.primary)
+                                Text("查看详细信息、许可证和贡献指南")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    
+                    // 版本信息
                     HStack {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
+                        Image(systemName: "tag.fill")
+                            .foregroundColor(.green)
                             .frame(width: 24)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("The Dreamer")
+                            Text("版本信息")
                                 .foregroundColor(.primary)
                             Text("由学生打造，为学生服务")
                                 .font(.caption)
@@ -147,9 +194,11 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("设置")
-            .navigationBarTitleDisplayMode(.large)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("完成") {
                         dismiss()
                     }
@@ -166,47 +215,18 @@ struct SettingsView: View {
             ExamGroupManagementView()
                 .environment(\.modelContext, modelContext)
         }
-        // 清除数据确认弹窗
-        .alert("确认清除数据", isPresented: $showingClearDataAlert) {
-            Button("取消", role: .cancel) { }
-            Button("清除", role: .destructive) {
-                clearAllData()
-            }
-        } message: {
-            Text("此操作将删除所有科目、考试、练习等数据，且无法恢复。确定要继续吗？")
+        // 调试设置页面
+        .sheet(isPresented: $showingDebugSettings) {
+            DebugSettingsView()
+                .environment(\.modelContext, modelContext)
+        }
+        // 关于页面
+        .sheet(isPresented: $showingAbout) {
+            AboutView()
         }
     }
     
-    // MARK: - 数据清除功能
-    
-    /// 清除所有数据的函数
-    private func clearAllData() {
-        do {
-            // 删除所有模型数据
-            try modelContext.delete(model: Subject.self)
-            try modelContext.delete(model: Exam.self)
-            try modelContext.delete(model: ExamGroup.self)
-            try modelContext.delete(model: ExamSchedule.self)
-            try modelContext.delete(model: Question.self)
-            try modelContext.delete(model: QuestionResult.self)
-            try modelContext.delete(model: PracticeCollection.self)
-            try modelContext.delete(model: Practice.self)
-            try modelContext.delete(model: PaperTemplate.self)
-            try modelContext.delete(model: QuestionTemplate.self)
-            try modelContext.delete(model: PaperStructure.self)
-            try modelContext.delete(model: QuestionDefinition.self)
-            try modelContext.delete(model: TestMethod.self)
-            try modelContext.delete(model: QuestionType.self)
-            try modelContext.delete(model: RankData.self)
-            
-            // 保存更改
-            try modelContext.save()
-            
-            print("[\(Date())] 所有数据已成功清除")
-        } catch {
-            print("[\(Date())] 清除数据时发生错误: \(error)")
-        }
-    }
+
 }
 
 // 预览代码
