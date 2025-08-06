@@ -332,7 +332,7 @@ extension View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(darker ? Color(.systemGray6) : Color(.systemBackground))
+                    .fill(darker ? Color.gray.opacity(0.1) : Color.white)
                     .shadow(radius: 2)
             )
     }
