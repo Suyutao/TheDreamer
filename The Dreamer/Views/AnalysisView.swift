@@ -24,6 +24,7 @@
 import SwiftUI
 // 导入用于数据存储和管理的SwiftData框架
 import SwiftData
+import Charts
 
 // 定义可添加的数据类型枚举
 enum AddableDataType: Identifiable {
@@ -74,6 +75,10 @@ struct AnalysisView: View {
     @State private var showingUndoToast = false
     @State private var undoMessage = ""
     @State private var deletedExams: [Exam] = []
+    
+    // MARK: - 原生手势状态
+    @State private var showingGestureHint = false
+    @State private var multiSelectStarted = false
     
     /// 删除单个考试并显示撤销提示
     private func deleteSingleExam(_ exam: Exam) {
@@ -386,7 +391,30 @@ struct AnalysisView: View {
                 )
                 .animation(.easeInOut(duration: 0.3), value: showingUndoToast)
             }
+            // 手势提示覆盖层
+            .overlay(alignment: .top) {
+                if showingGestureHint {
+                    GestureHintView()
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: showingGestureHint)
+                }
+            }
         }
+        // 添加原生手势支持
+        .threeFingerTap {
+            handleThreeFingerTap()
+        }
+        .twoFingerMultiSelect(
+            onStart: {
+                handleMultiSelectStart()
+            },
+            onMove: { location in
+                handleMultiSelectMove(at: location)
+            },
+            onEnd: {
+                handleMultiSelectEnd()
+            }
+        )
     }
     
     // 执行删除操作
@@ -468,6 +496,39 @@ struct AnalysisView: View {
         exitEditMode()
     }
     
+    // MARK: - 原生手势处理方法
+    
+    /// 处理三指点击手势
+    private func handleThreeFingerTap() {
+        if !exams.isEmpty {
+            enterEditMode()
+            showingGestureHint = true
+            
+            // 3秒后自动隐藏提示
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                showingGestureHint = false
+            }
+        }
+    }
+    
+    /// 处理多选手势开始
+    private func handleMultiSelectStart() {
+        if !isEditMode && !exams.isEmpty {
+            enterEditMode()
+            multiSelectStarted = true
+        }
+    }
+    
+    /// 处理多选手势移动
+    private func handleMultiSelectMove(at location: CGPoint) {
+        // 这里可以根据位置选择对应的考试项
+        // 由于需要获取列表项的位置信息，这部分逻辑可能需要在具体的列表项中实现
+    }
+    
+    /// 处理多选手势结束
+    private func handleMultiSelectEnd() {
+        multiSelectStarted = false
+    }
 
 }
 
