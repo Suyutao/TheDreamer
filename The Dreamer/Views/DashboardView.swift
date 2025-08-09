@@ -63,21 +63,24 @@ struct DashboardView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack(spacing: 20) {
+                LazyVStack(spacing: 10) {
                     // 摘要部分
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("置顶")
                                 .font(.title2)
                                 .fontWeight(.semibold)
+                            
                             Spacer()
+                            
                             Button("编辑") {
                                 // TODO: 实现编辑功能
                             }
                             .font(.subheadline)
                             .foregroundColor(.blue)
                         }
-                        .padding(.horizontal)
+                        .padding(.top, 10)
+                        .padding(.horizontal, 40)
                         
                         // 科目成绩卡片
                         ForEach(subjects.prefix(4)) { subject in
@@ -103,7 +106,7 @@ struct DashboardView: View {
                         }
                     }
                 }
-                .padding(.top, 20)
+                .padding(.horizontal, 20)
             }
             .navigationTitle("第 \(currentWeek) 周摘要")
             .toolbar {
