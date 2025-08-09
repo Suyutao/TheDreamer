@@ -65,6 +65,15 @@ struct ManageSubjectsView: View {
     /// 状态变量，保存警告弹窗的消息内容。
     @State private var alertMessage = ""
     
+    /// 状态变量，控制重复科目合并确认弹窗是否显示。
+    @State private var showingDuplicateAlert = false
+    
+    /// 状态变量，保存待合并的重复科目信息。
+    @State private var duplicateSubjects: [String: [Subject]] = [:]
+    
+    /// 状态变量，保存待保存的新科目信息（用于重名检查后的保存）。
+    @State private var pendingSave: (name: String, score: Double, subject: Subject?)?
+    
     // MARK: - Computed Properties
     
     /// 视图的主体部分。
@@ -114,27 +123,36 @@ struct ManageSubjectsView: View {
             .toolbar {
                 // 取消按钮，用于关闭当前视图
                 ToolbarItem(placement: .cancellationAction) { Button("完成") { dismiss() } }
-                // 数据清理按钮（仅在非编辑模式下显示）
+                
+                // 根据编辑模式显示不同的按钮
+                #if os(iOS)
+                if editMode.isEditing {
+                    // 编辑模式：显示添加和数据清理按钮
+                    ToolbarItem(placement: .primaryAction) {
+                        HStack {
+                            Button(action: triggerDataIntegrityCheck) {
+                                Image(systemName: "trash.circle")
+                            }
+                            Button(action: showAddSheet) {
+                                Image(systemName: "plus")
+                            }
+                        }
+                    }
+                } else {
+                    // 非编辑模式：只显示编辑按钮
+                    ToolbarItem(placement: .primaryAction) { EditButton() }
+                }
+                #else
+                // macOS版本保持原有逻辑
                 ToolbarItem(placement: .secondaryAction) {
                     Button(action: triggerDataIntegrityCheck) {
                         Image(systemName: "trash.circle")
                     }
-                    #if os(iOS)
-                    .opacity(editMode.isEditing ? 0 : 1)
-                    #endif
                 }
-                // 编辑按钮，用于切换编辑模式
-                #if os(iOS)
-                ToolbarItem(placement: .primaryAction) { EditButton() }
-                #endif
-                // 添加按钮，用于添加新科目
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: showAddSheet) { Image(systemName: "plus") }
-                        // 在编辑模式下隐藏添加按钮
-                        #if os(iOS)
-                        .opacity(editMode.isEditing ? 0 : 1)
-                        #endif
                 }
+                #endif
             }
             // 设置表单页面
             .sheet(isPresented: $isShowingSheet) {
@@ -144,10 +162,27 @@ struct ManageSubjectsView: View {
             .alert(isPresented: $showingAlert) {
                 Alert(title: Text("提醒"), message: Text(alertMessage), dismissButton: .default(Text("好")))
             }
+            // 设置重复科目合并确认弹窗
+            .alert("发现重复科目", isPresented: $showingDuplicateAlert) {
+                Button("取消", role: .cancel) {
+                    pendingSave = nil
+                }
+                Button("合并重复科目") {
+                    performDuplicateMerge()
+                }
+                Button("仍然保存") {
+                    performPendingSave()
+                }
+            } message: {
+                Text(buildDuplicateAlertMessage())
+            }
             // 设置编辑模式环境值
             #if os(iOS)
             .environment(\.editMode, $editMode)
             #endif
+            .onAppear {
+                checkForDuplicateSubjects()
+            }
         }
     }
 
@@ -166,13 +201,32 @@ struct ManageSubjectsView: View {
         // 执行移动操作
         reorderedSubjects.move(fromOffsets: source, toOffset: destination)
         
-        // 更新所有科目的orderIndex以反映新的顺序
+        // 先将所有科目的orderIndex设置为临时值，避免唯一性约束冲突
+        for (index, subject) in reorderedSubjects.enumerated() {
+            subject.orderIndex = index + 1000 // 使用临时的大数值
+        }
+        
+        // 保存临时状态
+        do {
+            try modelContext.save()
+        } catch {
+            logger.error("保存临时排序状态失败: \(error.localizedDescription)")
+            return
+        }
+        
+        // 再将orderIndex设置为正确的值
         for (index, subject) in reorderedSubjects.enumerated() {
             subject.orderIndex = index
             logger.info("更新科目 \(subject.name) 的orderIndex为: \(index)")
         }
         
-        logger.info("完成拖动排序")
+        // 保存最终状态
+        do {
+            try modelContext.save()
+            logger.info("完成拖动排序")
+        } catch {
+            logger.error("保存最终排序状态失败: \(error.localizedDescription)")
+        }
     }
 
     /// 删除科目函数，从列表中删除指定索引的科目。
@@ -264,6 +318,27 @@ struct ManageSubjectsView: View {
     ///   - score: 科目满分。
     ///   - editing: 正在编辑的科目对象，如果为nil则表示创建新科目。
     private func save(name: String, score: Double, editing subject: Subject?) {
+        // 检查是否存在重名科目（排除正在编辑的科目本身）
+        let duplicates = subjects.filter { $0.name == name && $0 != subject }
+        
+        if !duplicates.isEmpty {
+            // 发现重名科目，保存待处理信息并显示确认弹窗
+            pendingSave = (name: name, score: score, subject: subject)
+            duplicateSubjects = [name: duplicates]
+            showingDuplicateAlert = true
+            return
+        }
+        
+        // 没有重名，直接保存
+        performActualSave(name: name, score: score, editing: subject)
+    }
+    
+    /// 执行实际的保存操作
+    /// - Parameters:
+    ///   - name: 科目名称
+    ///   - score: 科目满分
+    ///   - editing: 正在编辑的科目对象
+    private func performActualSave(name: String, score: Double, editing subject: Subject?) {
         if let subject = subject {
             // 编辑现有科目
             logger.info("编辑现有科目: \(subject.name)")
@@ -300,6 +375,123 @@ struct ManageSubjectsView: View {
         showingAlert = true
         
         logger.info("数据完整性检查标志已设置")
+    }
+    
+    // MARK: - 重复科目处理方法
+    
+    /// 检查是否存在重复科目
+    private func checkForDuplicateSubjects() {
+        let subjectNames = subjects.map { $0.name }
+        let duplicateNames = Dictionary(grouping: subjectNames, by: { $0 })
+            .filter { $1.count > 1 }
+            .keys
+        
+        if !duplicateNames.isEmpty {
+            logger.info("发现重复科目: \(duplicateNames.joined(separator: ", "))")
+            
+            // 构建重复科目字典
+            var duplicates: [String: [Subject]] = [:]
+            for name in duplicateNames {
+                duplicates[name] = subjects.filter { $0.name == name }
+            }
+            
+            duplicateSubjects = duplicates
+            
+            // 显示合并提示（仅在首次发现时）
+            if !UserDefaults.standard.bool(forKey: "HasShownDuplicateWarning") {
+                alertMessage = "检测到重复的科目名称。建议合并这些重复科目以避免数据混乱。您可以在科目管理界面中处理这些重复项。"
+                showingAlert = true
+                UserDefaults.standard.set(true, forKey: "HasShownDuplicateWarning")
+            }
+        }
+    }
+    
+    /// 构建重复科目弹窗消息
+    private func buildDuplicateAlertMessage() -> String {
+        guard let pending = pendingSave,
+              let duplicates = duplicateSubjects[pending.name] else {
+            return "发现重复科目"
+        }
+        
+        var message = "科目名称 '\(pending.name)' 已存在 \(duplicates.count) 个重复项：\n\n"
+        
+        for (index, duplicate) in duplicates.enumerated() {
+            message += "\(index + 1). 满分: \(String(format: "%.0f", duplicate.totalScore))\n"
+            message += "   考试数量: \(duplicate.exams.count)\n"
+            message += "   练习数量: \(duplicate.practiceCollections.count)\n\n"
+        }
+        
+        message += "您可以选择合并这些重复科目，或者仍然保存新科目。"
+        return message
+    }
+    
+    /// 执行重复科目合并
+    private func performDuplicateMerge() {
+        guard let pending = pendingSave,
+              let duplicates = duplicateSubjects[pending.name] else {
+            pendingSave = nil
+            return
+        }
+        
+        logger.info("开始合并重复科目: \(pending.name)")
+        
+        // 选择第一个科目作为主科目，将其他科目的数据合并到它上面
+        let primarySubject = duplicates[0]
+        let subjectsToMerge = Array(duplicates.dropFirst())
+        
+        // 更新主科目的信息（使用新的满分值）
+        primarySubject.totalScore = pending.score
+        
+        // 合并其他科目的数据到主科目
+        for subjectToMerge in subjectsToMerge {
+            // 转移考试数据
+            for exam in subjectToMerge.exams {
+                exam.subject = primarySubject
+            }
+            
+            // 转移练习数据
+            for practice in subjectToMerge.practiceCollections {
+                practice.subject = primarySubject
+            }
+            
+            // 转移模板数据
+            for template in subjectToMerge.paperTemplates {
+                template.subject = primarySubject
+            }
+            
+            // 删除被合并的科目
+            modelContext.delete(subjectToMerge)
+            logger.info("删除重复科目: \(subjectToMerge.name)")
+        }
+        
+        // 保存更改
+        do {
+            try modelContext.save()
+            logger.info("成功合并重复科目: \(pending.name)")
+            alertMessage = "已成功合并重复科目 '\(pending.name)'。"
+            showingAlert = true
+        } catch {
+            logger.error("合并重复科目失败: \(error.localizedDescription)")
+            alertMessage = "合并失败：\(error.localizedDescription)"
+            showingAlert = true
+        }
+        
+        // 清理状态
+        pendingSave = nil
+        duplicateSubjects.removeAll()
+        isShowingSheet = false
+    }
+    
+    /// 执行待保存操作（忽略重复检查）
+    private func performPendingSave() {
+        guard let pending = pendingSave else { return }
+        
+        logger.info("用户选择忽略重复检查，继续保存科目: \(pending.name)")
+        performActualSave(name: pending.name, score: pending.score, editing: pending.subject)
+        
+        // 清理状态
+        pendingSave = nil
+        duplicateSubjects.removeAll()
     }
 }
 

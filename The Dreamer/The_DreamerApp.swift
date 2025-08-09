@@ -81,9 +81,29 @@ struct TheDreamerApp: App {
     var body: some Scene {
         WindowGroup {
             // 这里是应用的根视图
-            MainTabView()
+            ContentView()
         }
         // 将我们创建的模型容器附加到场景中，这样应用的所有部分都可以访问这些数据模型
         .modelContainer(sharedModelContainer)
+    }
+}
+
+// MARK: - 内容视图
+
+/// 应用的主内容视图，负责决定显示OnBoarding还是主界面
+struct ContentView: View {
+    // 使用 @AppStorage 检测是否已完成引导
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    
+    var body: some View {
+        Group {
+            if hasCompletedOnboarding {
+                // 已完成引导，显示主界面
+                MainTabView()
+            } else {
+                // 首次启动，显示引导流程
+                OnBoardingView()
+            }
+        }
     }
 }
