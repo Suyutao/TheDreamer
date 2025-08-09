@@ -23,6 +23,10 @@ struct SettingsView: View {
     @State private var showingManageExamGroups = false
     @State private var showingDebugSettings = false
     @State private var showingAbout = false
+    @State private var showingOnBoarding = false
+    
+    // 引导完成状态
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     
     var body: some View {
         NavigationStack {
@@ -171,6 +175,35 @@ struct SettingsView: View {
                         .contentShape(Rectangle())
                     }
                     
+                    // 重新查看引导
+                    ZStack {
+                        Button(action: { showingOnBoarding = true }) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
+                        HStack {
+                            Image(systemName: "questionmark.circle.fill")
+                                .foregroundColor(.purple)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("重新查看引导")
+                                    .foregroundColor(.primary)
+                                Text("重新体验应用介绍和功能说明")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    
                     // 版本信息
                     HStack {
                         Image(systemName: "tag.fill")
@@ -223,6 +256,10 @@ struct SettingsView: View {
         // 关于页面
         .sheet(isPresented: $showingAbout) {
             AboutView()
+        }
+        // OnBoarding页面
+        .sheet(isPresented: $showingOnBoarding) {
+            OnBoardingView(isReviewMode: true)
         }
     }
     

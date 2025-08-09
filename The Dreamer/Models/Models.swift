@@ -66,7 +66,7 @@ final class Subject {
     
     // [V22] 新增：用于手动排序的索引。
     // [V22] 数字越小，排在越前面。
-    @Attribute(.unique) var orderIndex: Int
+    var orderIndex: Int
     
     /// [V7] 关系: 一个科目下可以有多个"卷子模板"。
     @Relationship(deleteRule: .cascade, inverse: \PaperTemplate.subject)
