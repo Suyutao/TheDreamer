@@ -1,0 +1,163 @@
+{
+  "taskId": "250809",
+  "taskName": "重构LittlsCharts组件并重新设计Tab结构",
+  "description": "将写死的图表组件改为可复用组件，重新设计主界面Tab结构为摘要和数据库",
+  "priority": "high",
+  "estimatedTime": "10min",
+  "dependencies": [
+    "LittlsCharts/RankLineChart.swift",
+    "LittlsCharts/SubjectScoreLineChart.swift",
+    "Views/MainTabView.swift",
+    "Views/AnalysisView.swift",
+    "Views/DashboardView.swift"
+  ],
+  "steps": [
+    {
+      "stepId": 1,
+      "title": "重构LittlsCharts为可复用组件",
+      "description": "将现有的写死文字的图表组件改为接受参数的可复用组件",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "task": "修改SubjectScoreLineChart，添加参数：科目名称、分数、日期、图标",
+          "files": ["LittlsCharts/SubjectScoreLineChart.swift"]
+        },
+        {
+          "id": "1.2",
+          "task": "修改RankLineChart，添加参数：排名、总人数、日期",
+          "files": ["LittlsCharts/RankLineChart.swift"]
+        },
+        {
+          "id": "1.3",
+          "task": "为图表组件添加预览数据和示例",
+          "files": ["LittlsCharts/RankLineChart.swift", "LittlsCharts/SubjectScoreLineChart.swift"]
+        }
+      ]
+    },
+    {
+      "stepId": 2,
+      "title": "重新设计Tab结构",
+      "description": "将现有的Tab改名为摘要和数据库",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "task": "修改MainTabView，将Tab名称改为摘要和数据库",
+          "files": ["Views/MainTabView.swift"]
+        },
+        {
+          "id": "2.2",
+          "task": "更新Tab图标和标识符",
+          "files": ["Views/MainTabView.swift"]
+        }
+      ]
+    },
+    {
+      "stepId": 3,
+      "title": "重新设计摘要视图",
+      "description": "按照截图样式重新设计摘要视图布局",
+      "subtasks": [
+        {
+          "id": "3.1",
+          "task": "创建新的摘要视图结构，包含章节标题和卡片布局",
+          "files": ["Views/DashboardView.swift"]
+        },
+        {
+          "id": "3.2",
+          "task": "使用重构后的LittlsCharts组件显示数据",
+          "files": ["Views/DashboardView.swift"]
+        },
+        {
+          "id": "3.3",
+          "task": "实现编辑按钮和日期显示功能",
+          "files": ["Views/DashboardView.swift"]
+        }
+      ]
+    },
+    {
+      "stepId": 4,
+      "title": "重新设计数据库视图",
+      "description": "按照截图样式重新设计数据库视图，包含科目和图表分组",
+      "subtasks": [
+        {
+          "id": "4.1",
+          "task": "创建新的数据库视图结构，包含科目和图表两个分组",
+          "files": ["Views/AnalysisView.swift"]
+        },
+        {
+          "id": "4.2",
+          "task": "将原分析视图中的科目列表移到数据库科目分组下",
+          "files": ["Views/AnalysisView.swift"]
+        },
+        {
+          "id": "4.3",
+          "task": "为每个科目详情视图顶部添加分数折线图",
+          "files": ["Views/SubjectDetailView.swift"]
+        },
+        {
+          "id": "4.4",
+          "task": "在图表分组下添加现有的折线图（暂不包含排名折线图）",
+          "files": ["Views/AnalysisView.swift"]
+        },
+        {
+          "id": "4.5",
+          "task": "删除数据库视图右上角的两个按钮，保留左上角设置按钮",
+          "files": ["Views/AnalysisView.swift"]
+        },
+        {
+          "id": "4.6",
+          "task": "在科目详情视图右上角工具栏添加添加数据的加号按钮",
+          "files": ["Views/SubjectDetailView.swift"],
+          "status": "completed",
+          "actualImplementation": "重新设计了SubjectDetailView，添加了科目信息展示和两个操作选项：'所有数据'（导航到SubjectDataView）和'编辑科目'（导航到SubjectEditView）。创建了新的SubjectDataView用于显示单个科目的所有考试数据，支持添加、删除和撤销操作。同时更新了AddDataView以支持预选科目功能。"
+        }
+      ]
+    },
+    {
+      "stepId": 5,
+      "title": "测试和优化",
+      "description": "测试重构后的组件和视图",
+      "subtasks": [
+        {
+          "id": "5.1",
+          "task": "编译测试确保无语法错误",
+          "files": ["全部相关文件"]
+        },
+        {
+          "id": "5.2",
+          "task": "检查UI布局是否符合截图要求",
+          "files": ["Views/DashboardView.swift", "Views/AnalysisView.swift"]
+        },
+        {
+          "id": "5.3",
+          "task": "优化组件性能和代码结构",
+          "files": ["LittlsCharts/"]
+        }
+      ]
+    }
+  ],
+  "technicalRequirements": {
+    "frameworks": ["SwiftUI", "SwiftData", "Swift Charts"],
+    "designPrinciples": [
+      "组件化和可复用性",
+      "符合Apple HIG设计规范",
+      "保持现有数据模型不变",
+      "渐进式重构，确保编译通过"
+    ],
+    "constraints": [
+      "不修改现有数据模型",
+      "保持现有功能完整性",
+      "排名折线图暂不实现"
+    ]
+  },
+  "deliverables": [
+    "可复用的图表组件",
+    "重新设计的摘要视图",
+    "重新设计的数据库视图",
+    "更新的Tab导航结构"
+  ],
+  "notes": [
+    "需要参考用户提供的截图进行UI设计",
+    "重构过程中保持代码可编译状态",
+    "优先实现核心功能，细节优化可后续进行"
+  ]
+}
