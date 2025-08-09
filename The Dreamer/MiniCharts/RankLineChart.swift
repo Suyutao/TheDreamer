@@ -19,27 +19,27 @@ struct RankLineChart: View {
                     Text("􀉪")
                         .font(.system(size: 12))
                         .lineSpacing(16)
-                        .foregroundColor(Color(red: 0, green: 0.53, blue: 1))
+                        .foregroundColor((.blue))
                     HStack(spacing: 0) {
                         Text("班级")
                             .font(.system(size: 12))
                             .lineSpacing(16)
-                            .foregroundColor(Color(red: 0, green: 0.53, blue: 1))
+                            .foregroundColor((.blue))
                         Text("排名")
                             .font(.system(size: 12))
                             .lineSpacing(16)
-                            .foregroundColor(Color(red: 0, green: 0.53, blue: 1))
+                            .foregroundColor((.blue))
                     }
                 }
                 HStack(alignment: .top, spacing: 2) {
                     Text(formattedDate)
                         .font(.system(size: 12))
                         .lineSpacing(16)
-                        .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                        .foregroundColor(.secondary)
                     Text("􀆊")
                         .font(.system(size: 12))
                         .lineSpacing(16)
-                        .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                        .foregroundColor(.secondary)
                 }
             }
             HStack(alignment: .bottom, spacing: 10) {
@@ -47,16 +47,16 @@ struct RankLineChart: View {
                     Text("最新")
                         .font(.system(size: 12))
                         .lineSpacing(16)
-                        .foregroundColor(Color(red: 0.24, green: 0.24, blue: 0.26).opacity(0.60))
+                        .foregroundColor(.secondary)
                     HStack(alignment: .bottom, spacing: 2) {
                         Text("\(rank)")
                             .font(Font.custom("SF Pro Rounded", size: 27).weight(.semibold))
                             .lineSpacing(22)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                         Text("/\(total)人")
                             .font(.system(size: 12))
                             .lineSpacing(16)
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(.secondary)
                     }
                 }
                 .frame(height: 48)
@@ -64,7 +64,7 @@ struct RankLineChart: View {
                     Text("图表预留处")
                         .font(.system(size: 12))
                         .lineSpacing(16)
-                        .foregroundColor(Color(red: 0.24, green: 0.24, blue: 0.26).opacity(0.60))
+                        .foregroundColor(.secondary)
                         .offset(x: 0, y: 0.50)
                 }
                 .frame(width: 86)
@@ -72,16 +72,14 @@ struct RankLineChart: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 11)
                         .inset(by: 0.50)
-                        .stroke(
-                            Color(red: 0, green: 0, blue: 0).opacity(0.12), lineWidth: 0.50
-                        )
+                        .stroke(.secondary)
                 )
             }
             .frame(height: 53)
         }
         .padding(EdgeInsets(top: 15, leading: 15, bottom: 20, trailing: 15))
-        .frame(width: 362, height: 137)
-        .background(.white)
+        .frame(maxWidth: .infinity)
+        .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(26)
     }
 }

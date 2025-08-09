@@ -6,52 +6,119 @@
 //
 
 // 功能简介：
-// DashboardView 是应用的主页，用于展示用户的学习数据可视化图表。
-// 它显示当前是学期的第几周，并提供一个空状态视图作为占位符，
-// 未来将在这里展示成绩趋势的可视化图表。
-
-// 常用名词说明：
-// View: SwiftUI 中的视图协议，用于定义用户界面。
-// struct: Swift 中的结构体，用于定义自定义数据类型。
-// body: View 协议中的计算属性，用于定义视图的层次结构。
-// NavigationView: SwiftUI 中的导航视图容器，用于管理导航层次结构。
-// ScrollView: SwiftUI 中的滚动视图容器，用于容纳可滚动的内容。
-// EmptyStateView: 自定义的空状态视图，用于在没有数据时显示提示信息。
-// Calendar: Foundation 框架中的类，用于处理日历相关的计算。
-// Date: Foundation 框架中的类，用于表示特定的时间点。
+// DashboardView 是应用的摘要页，用于展示用户的学习数据可视化图表。
+// 它显示当前是学期的第几周，并展示多个科目的成绩折线图卡片。
 
 import SwiftUI
 import SwiftData
 
-/// DashboardView 是应用的主页，用于展示用户的学习数据可视化图表。
+/// DashboardView 是应用的摘要页，用于展示用户的学习数据可视化图表。
 struct DashboardView: View {
+    @Environment(\.modelContext) private var modelContext
+    
+    // 查询所有科目，按orderIndex排序
+    @Query(sort: \Subject.orderIndex) private var subjects: [Subject]
+    // 查询所有考试，按日期倒序
+    @Query(sort: \Exam.date, order: .reverse) private var exams: [Exam]
+    
+    @State private var showingSettingsSheet = false
     
     /// 计算当前是学期的第几周
-    /// - Returns: 当前是学期的第几周
     private var currentWeek: Int {
-        // 这里可以放入你之前设定的学期开始日期逻辑
-        // 为简单起见，我们先用一个占位符
-        return Calendar.current.component(.weekOfYear, from: Date())
+        Calendar.current.component(.weekOfYear, from: Date())
+    }
+    
+    /// 获取指定科目的最新考试记录
+    private func getLatestExam(for subject: Subject) -> Exam? {
+        subject.exams.sorted { $0.date > $1.date }.first
+    }
+    
+    /// 获取指定科目的SF Symbol图标
+    private func getSubjectIcon(for subject: Subject) -> String {
+        // 根据科目名称返回对应的SF Symbol
+        switch subject.name {
+        case let name where name.contains("语文"):
+            return "text.book.closed"
+        case let name where name.contains("数学"):
+            return "function"
+        case let name where name.contains("英语"):
+            return "textformat.abc"
+        case let name where name.contains("物理"):
+            return "atom"
+        case let name where name.contains("化学"):
+            return "flask"
+        case let name where name.contains("生物"):
+            return "leaf"
+        case let name where name.contains("历史"):
+            return "clock"
+        case let name where name.contains("地理"):
+            return "globe.asia.australia"
+        case let name where name.contains("政治"):
+            return "building.columns"
+        default:
+            return "book"
+        }
     }
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 30) {
-                    // 使用我们的通用空状态视图作为占位符
-                    EmptyStateView(
-                        iconName: "chart.pie.fill",
-                        title: "图表正在赶来",
-                        message: "在这里，你将看到关于成绩趋势的可视化图表。敬请期待！"
-                    )
+                LazyVStack(spacing: 20) {
+                    // 摘要部分
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("置顶")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Button("编辑") {
+                                // TODO: 实现编辑功能
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                        }
+                        .padding(.horizontal)
+                        
+                        // 科目成绩卡片
+                        ForEach(subjects.prefix(4)) { subject in
+                            if let latestExam = getLatestExam(for: subject) {
+                                SubjectScoreLineChart(
+                                    subjectName: subject.name,
+                                    score: latestExam.score,
+                                    date: latestExam.date,
+                                    iconSystemName: getSubjectIcon(for: subject)
+                                )
+                                .padding(.horizontal)
+                            }
+                        }
+                        
+                        // 如果没有数据，显示空状态
+                        if subjects.isEmpty || subjects.allSatisfy({ getLatestExam(for: $0) == nil }) {
+                            EmptyStateView(
+                                iconName: "chart.bar.fill",
+                                title: "暂无成绩数据",
+                                message: "添加一些考试记录后，这里将显示你的成绩摘要"
+                            )
+                            .padding(.horizontal)
+                        }
+                    }
                 }
-                .padding(.top, 50)
+                .padding(.top, 20)
             }
-            .navigationTitle("2025年第 \(currentWeek) 周")
-
+            .navigationTitle("第 \(currentWeek) 周摘要")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { showingSettingsSheet = true }) {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettingsSheet) {
+                SettingsView()
+                    .environment(\.modelContext, modelContext)
+            }
         }
-     }
-
+    }
 }
 
 #Preview {

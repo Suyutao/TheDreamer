@@ -185,7 +185,7 @@ struct ExamDetailView: View {
         // 显示编辑视图
         .sheet(isPresented: $showingEditView) {
             NavigationView {
-                AddDataView(dataType: Binding.constant(.exam), examToEdit: exam)
+                AddDataView(dataType: Binding.constant(.exam), examToEdit: exam, preselectedSubject: nil)
             }
         }
      }

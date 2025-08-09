@@ -5,6 +5,7 @@
 //  Created by AI Assistant on 2025-01-13.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 import UIKit
 import Combine
@@ -190,3 +191,50 @@ struct GestureHintView: View {
         .padding(.top, 60)
     }
 }
+
+#else
+import SwiftUI
+import Combine
+
+// 在无法导入 UIKit 的平台上提供无操作兜底实现，确保跨平台编译通过
+
+// MARK: - View Extensions (No-Op)
+extension View {
+    /// 占位：三指点击（非UIKit平台不支持，返回原视图）
+    func threeFingerTap(perform action: @escaping () -> Void) -> some View { self }
+    
+    /// 占位：双指多选（非UIKit平台不支持，返回原视图）
+    func twoFingerMultiSelect(
+        onStart: @escaping () -> Void,
+        onMove: @escaping (CGPoint) -> Void,
+        onEnd: @escaping () -> Void
+    ) -> some View { self }
+}
+
+// MARK: - Gesture Feedback (Fallback)
+class GestureFeedbackManager: ObservableObject {
+    @Published var isMultiSelectActive = false
+    @Published var showGestureHint = false
+    
+    /// 触发触觉反馈（占位实现）
+    func triggerHapticFeedback(_ style: Int = 0) { /* no-op */ }
+    
+    /// 显示手势提示（沿用动画与时序，无触觉）
+    func showHint(for duration: TimeInterval = 2.0) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showGestureHint = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.showGestureHint = false
+            }
+        }
+    }
+}
+
+// MARK: - Gesture Hint View (Fallback)
+struct GestureHintView: View {
+    let message: String = "已进入编辑模式"
+    var body: some View { EmptyView() }
+}
+#endif

@@ -59,6 +59,9 @@ struct AddDataView: View {
     // 编辑模式：如果传入exam则为编辑模式，否则为添加模式
     let examToEdit: Exam?
     
+    // 预选科目：用于从科目详情页面跳转时预先选择科目
+    let preselectedSubject: Subject?
+    
     // UI State（用户界面状态变量）
     // @State是属性包装器，用于管理视图的状态
     // 当状态变量的值发生变化时，界面会自动更新
@@ -160,22 +163,17 @@ struct AddDataView: View {
                 // ToolbarItem定义工具栏上的一个项目
                 // placement: .primaryAction表示放置在右上角
                 ToolbarItem(placement: .primaryAction) {
-                    // 创建保存按钮，点击时调用saveData函数
-                    // Button用于创建一个可点击的按钮
-                    // "保存"是按钮显示的文本
-                    // action: saveData表示点击按钮时执行saveData函数
-                    Button("保存", systemImage: "checkmark", role: .confirm) { saveData() }
-                    // 根据表单验证结果决定按钮是否可用
-                    // .disabled是修饰符，用于控制视图是否禁用
-                    // isSaveButtonDisabled是下面定义的计算属性
+                    Button(action: { saveData() }) {
+                        Label("保存", systemImage: "checkmark")
+                    }
                     .disabled(isSaveButtonDisabled)
                 }
                 // 在左侧添加取消按钮
                 // placement: .cancellationAction表示放置在左侧取消位置
                 ToolbarItem(placement: .cancellationAction) {
-                    // 创建取消按钮，点击时关闭当前视图
-                    // dismiss()是调用Environment中的关闭功能
-                    Button("取消", systemImage: "xmark") { dismiss() }
+                    Button(action: { dismiss() }) {
+                        Label("取消", systemImage: "xmark")
+                    }
                 }
             }
         }
@@ -191,6 +189,9 @@ struct AddDataView: View {
                 if dataType == nil {
                     dataType = .exam
                 }
+            } else if let preselected = preselectedSubject {
+                // 如果有预选科目，设置为选中状态
+                selectedSubject = preselected
             }
         }
         .onChange(of: selectedExamGroup) { oldValue, newValue in
@@ -500,13 +501,13 @@ struct AddDataView: View {
 
 // 考试添加界面的预览
 #Preview("添加考试") {
-    AddDataView(dataType: Binding.constant(.exam), examToEdit: nil)
+    AddDataView(dataType: Binding.constant(.exam), examToEdit: nil, preselectedSubject: nil)
         .modelContainer(for: [Subject.self, Exam.self])
 }
 
 // 练习添加界面的预览
 #Preview("添加练习") {
-    AddDataView(dataType: Binding.constant(.practice), examToEdit: nil)
+    AddDataView(dataType: Binding.constant(.practice), examToEdit: nil, preselectedSubject: nil)
         .modelContainer(for: [PracticeCollection.self, Practice.self, Subject.self])
 }
 
@@ -525,7 +526,7 @@ struct AddDataView: View {
     
     try? context.save()
     
-    return AddDataView(dataType: Binding.constant(.exam), examToEdit: exam)
+    return AddDataView(dataType: Binding.constant(.exam), examToEdit: exam, preselectedSubject: nil)
         .modelContainer(container)
 }
 
