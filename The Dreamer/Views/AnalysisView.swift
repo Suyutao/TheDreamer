@@ -113,9 +113,9 @@ struct AnalysisView: View {
                 Section("科目") {
                     if subjects.isEmpty {
                         HStack {
-                            Image(systemName: "folder")
-                                .foregroundColor(.gray)
-                            Text("暂无科目")
+                            Image(systemName: "plus.circle")
+                                .foregroundColor(.blue)
+                            Text("点击右上角 + 添加数据")
                                 .foregroundColor(.secondary)
                         }
                         .padding(.vertical, 8)

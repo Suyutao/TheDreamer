@@ -182,7 +182,8 @@ struct AddDataView: View {
             if let exam = examToEdit {
                 examName = exam.name
                 date = exam.date
-                scoreText = String(Int(exam.totalScore))
+                // 修复：保留小数精度而不是强转为Int，避免150.0 -> 150
+                scoreText = String(format: "%g", exam.totalScore)
                 selectedSubject = exam.subject
                 selectedExamGroup = exam.examGroup
                 // 编辑模式下强制设置为考试类型
@@ -392,8 +393,8 @@ struct AddDataView: View {
         
         if isEditingMode {
             // 编辑模式验证
-            // 检查考试名称是否为空
-            if examName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            // 仅当不在大考模式（selectedExamGroup == nil）时，才要求考试名称非空
+            if selectedExamGroup == nil && examName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return true
             }
             
