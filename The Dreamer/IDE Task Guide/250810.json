@@ -164,6 +164,24 @@
           ]
         },
         {
+          "taskId": "4.3",
+          "title": "空科目引导文案",
+          "description": "当科目Section为空时，文案引导用户通过右上角 + 添加数据",
+          "owner": "@UI/UX设计师",
+          "status": "[✓]",
+          "files": [
+            "Views/AnalysisView.swift"
+          ],
+          "steps": [
+            "修改科目Section为空时的提示UI和文案",
+            "确保与右上角 + 的交互一致"
+          ],
+          "acceptanceCriteria": [
+            "无科目时显示引导性文案",
+            "文案表述清晰，引导操作明确"
+          ]
+        },
+        {
           "taskId": "4.2",
           "title": "科目页面锁定添加",
           "description": "从科目详情页添加数据时，锁定到对应科目",
@@ -261,6 +279,47 @@
             "无法输入超过满分的成绩",
             "输入体验流畅且直观",
             "支持必要的精度（整数或小数）"
+          ]
+        },
+        {
+          "taskId": "6.2",
+          "title": "分数字符串与小数精度协调",
+          "description": "修复编辑模式下150.0被格式化为150导致校验冲突的问题",
+          "owner": "@程序员",
+          "status": "[✓]",
+          "files": [
+            "Views/AddDataView.swift"
+          ],
+          "steps": [
+            "编辑模式初始化scoreText时保留小数",
+            "确保Double解析与满分比较逻辑一致",
+            "回归测试含小数与整数分数"
+          ],
+          "acceptanceCriteria": [
+            "编辑150.0不再被判定为无效",
+            "整数与小数都能正确通过校验",
+            "不影响添加模式的校验"
+          ]
+        },
+        {
+          "taskId": "6.3",
+          "title": "保存成功Toast反馈（延后）",
+          "description": "保存成功后在AnalysisView根层用轻提示反馈（如UndoToastView）",
+          "owner": "@UI/UX设计师",
+          "status": "[ ]",
+          "files": [
+            "Views/AnalysisView.swift",
+            "Views/AddDataView.swift"
+          ],
+          "steps": [
+            "设计dismiss回调或环境事件机制",
+            "在AnalysisView响应事件展示Toast",
+            "确保不打扰当前操作"
+          ],
+          "acceptanceCriteria": [
+            "保存后出现轻提示",
+            "提示自动消失且可撤销（可选）",
+            "无多余打扰"
           ]
         }
       ]

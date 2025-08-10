@@ -1,0 +1,142 @@
+{
+  "docId": "ROADMAP",
+  "name": "主线 Roadmap：图表系统 V2",
+  "version": "2025-08-10",
+  "owner": "@程序员",
+  "purpose": "摆脱零散修复循环，聚焦图表系统 V2 的端到端交付。",
+  "principles": [
+    "以学生真实需求为中心，图表是洞察工具而非装饰",
+    "一次只推进一个主线能力，其余改动走 Bugfix 分支",
+    "每个里程碑必须可编译、可演示"
+  ],
+  "branching": {
+    "feature_branch": "feature/charts-v2",
+    "bugfix_branch": "stabilization/bugfixes",
+    "policy": {
+      "bugfix_window": "每天 19:30-20:00 统一处理非阻断性问题",
+      "hotfix_scope": "仅崩溃、数据损坏、编译失败可立即处理",
+      "merge_strategy": "bugfix -> main（快速合并）；feature -> main 通过 PR，在通过构建与里程碑验收后合入"
+    }
+  },
+  "vision": "在两周内交付 V2 图表系统 MVP，支持趋势折线图、科目对比柱状图和单次得分率饼图的基础洞察能力。",
+  "nonGoals": [
+    "不做高级交互（多指缩放/手势标注）",
+    "不做服务器端或云同步",
+    "不做模板系统完全体，仅保留数据面向展示的最小支撑"
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "name": "趋势折线图 MVP",
+      "eta": "2025-01-12",
+      "deliverables": [
+        "AnalysisView 集成“趋势”入口",
+        "SubjectScoreLineChart 展示单科/多科分数随时间的折线",
+        "基础图例、空数据态、数据范围选择（全部/近30天/自定义）"
+      ],
+      "acceptanceCriteria": [
+        "至少 1 科可画线，空数据有明确引导",
+        "分数坐标与日期轴格式正确，显示不重叠",
+        "切换科目与时间范围时不卡顿且无崩溃"
+      ]
+    },
+    {
+      "id": "M2",
+      "name": "科目对比柱状图 MVP",
+      "eta": "2025-01-15",
+      "deliverables": [
+        "BarChartView 展示近一次考试各科分数对比（支持排序）",
+        "得分率配色（高-低梯度）"
+      ],
+      "acceptanceCriteria": [
+        "能稳定加载近一次考试数据并渲染",
+        "排序与配色生效且无布局抖动"
+      ]
+    },
+    {
+      "id": "M3",
+      "name": "单次考试得分率饼图",
+      "eta": "2025-01-18",
+      "deliverables": [
+        "PieChartView 展示单次考试得分率",
+        "空数据、异常数据的保护逻辑"
+      ],
+      "acceptanceCriteria": [
+        "至少 1 次考试可被选择并渲染",
+        "无 NaN/Infinity 数值导致的崩溃"
+      ]
+    }
+  ],
+  "epics": [
+    {
+      "epicId": "E1",
+      "name": "趋势折线图（Score Trend）",
+      "tasks": [
+        {
+          "taskId": "E1.1",
+          "title": "数据聚合层（SwiftData 查询）",
+          "files": ["Models/Models.swift", "Views/AnalysisView.swift"],
+          "acceptanceCriteria": [
+            "能按科目聚合分数时间序列",
+            "能过滤最近 N 天、或自定义日期区间"
+          ]
+        },
+        {
+          "taskId": "E1.2",
+          "title": "SubjectScoreLineChart 强化（多序列、空态）",
+          "files": ["MiniCharts/SubjectScoreLineChart.swift"],
+          "acceptanceCriteria": [
+            "支持 1-3 条序列叠加",
+            "空数据展示 EmptyStateView，引导用户添加数据"
+          ]
+        },
+        {
+          "taskId": "E1.3",
+          "title": "AnalysisView 集成图表入口与筛选控件",
+          "files": ["Views/AnalysisView.swift"],
+          "acceptanceCriteria": [
+            "新增“趋势”导航入口",
+            "科目多选与日期范围切换可用"
+          ]
+        }
+      ]
+    },
+    {
+      "epicId": "E2",
+      "name": "科目对比柱状图（Subject Comparison）",
+      "tasks": [
+        { "taskId": "E2.1", "title": "BarChartView 配置化渲染", "files": ["Charts/BarChartView.swift"] },
+        { "taskId": "E2.2", "title": "近一次考试数据装配", "files": ["Views/AnalysisView.swift", "Models/Models.swift"] }
+      ]
+    },
+    {
+      "epicId": "E3",
+      "name": "单次考试得分率（Pie）",
+      "tasks": [
+        { "taskId": "E3.1", "title": "PieChartView 数据映射", "files": ["Charts/PieChartView.swift", "Views/ExamDetailView.swift"] },
+        { "taskId": "E3.2", "title": "异常数据兜底（0/0、缺考）", "files": ["Views/ExamDetailView.swift"] }
+      ]
+    }
+  ],
+  "nextActions": [
+    {
+      "id": "N1",
+      "title": "创建并切换到 feature 分支",
+      "commands": [
+        "git checkout -b feature/charts-v2",
+        "git push -u origin feature/charts-v2"
+      ],
+      "note": "如需我代为执行，请确认。我会在执行前确保工作区干净并保存未提交修改。"
+    },
+    {
+      "id": "N2",
+      "title": "冻结非阻断性修复，集中 30 分钟窗口处理",
+      "definition": "仅崩溃/编译失败/数据损坏即时处理，其余进入 stabilization/bugfixes"
+    },
+    {
+      "id": "N3",
+      "title": "实现 E1.1 数据聚合并打通到 SubjectScoreLineChart",
+      "files": ["Models/Models.swift", "MiniCharts/SubjectScoreLineChart.swift", "Views/AnalysisView.swift"]
+    }
+  ]
+}
