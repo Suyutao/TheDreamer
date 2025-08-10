@@ -86,6 +86,7 @@ struct ExamDetailView: View {
                     Spacer()
                     Text("\(Int(exam.score)) / \(Int(exam.totalScore))")
                         .foregroundColor(.secondary)
+                        .accessibilityLabel("本次得分 \(Int(exam.score))，满分 \(Int(exam.totalScore))")
                 }
                 HStack {
                     Text("得分率")

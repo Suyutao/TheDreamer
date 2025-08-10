@@ -178,12 +178,12 @@ struct AddDataView: View {
             }
         }
         .onAppear {
-            // 如果是编辑模式，初始化表单数据
+            // 编辑模式：填充现有数据
             if let exam = examToEdit {
                 examName = exam.name
                 date = exam.date
-                // 修复：保留小数精度而不是强转为Int，避免150.0 -> 150
-                scoreText = String(format: "%g", exam.totalScore)
+                // 编辑时显示当前分数
+                scoreText = String(format: "%g", exam.score)
                 selectedSubject = exam.subject
                 selectedExamGroup = exam.examGroup
                 // 编辑模式下强制设置为考试类型
@@ -442,7 +442,7 @@ struct AddDataView: View {
             do {
                 exam.name = examName
                 exam.date = date
-                exam.totalScore = scoreValue
+                exam.score = scoreValue // 修复：应该更新分数，而不是总分
                 // 更新考试组关联
                 exam.examGroup = selectedExamGroup
                 // 注意：编辑模式下不允许更改科目，所以不更新subject

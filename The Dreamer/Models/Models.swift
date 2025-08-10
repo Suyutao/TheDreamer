@@ -66,7 +66,7 @@ final class Subject {
     
     // [V22] 新增：用于手动排序的索引。
     // [V22] 数字越小，排在越前面。
-    var orderIndex: Int
+    var orderIndex: Int = 0
     
     // MARK: - 时间戳字段（架构增强）
     /// 数据创建时间戳
@@ -102,15 +102,51 @@ final class Subject {
         return Array(Set(allTypes)).sorted(by: { $0.name < $1.name })
     }
     
+    // MARK: - 数据聚合层 (E1.1)
+    
+    /// 获取按日期排序的考试记录，支持时间范围过滤
+    func getExamsInDateRange(_ dateRange: ClosedRange<Date>?) -> [Exam] {
+        let sortedExams = exams.sorted { $0.date < $1.date }
+        
+        guard let range = dateRange else {
+            return sortedExams
+        }
+        
+        return sortedExams.filter { range.contains($0.date) }
+    }
+    
+    /// 获取最近 N 天的考试记录
+    func getRecentExams(days: Int) -> [Exam] {
+        let now = Date()
+        let startDate = Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
+        let dateRange = startDate...now
+        return getExamsInDateRange(dateRange)
+    }
+    
+    /// 获取用于折线图的数据点
+    func getScoreDataPoints(in dateRange: ClosedRange<Date>? = nil) -> [ChartDataPoint] {
+        return getExamsInDateRange(dateRange).compactMap { exam in
+            guard exam.totalScore > 0 else { return nil }
+            return ChartDataPoint(
+                date: exam.date,
+                score: exam.score,
+                totalScore: exam.totalScore,
+                examName: exam.name,
+                subject: self.name,
+                type: .myScore
+            )
+        }
+    }
+    
     init(name: String, totalScore: Double, orderIndex: Int = 0) {
-            self.name = name
-            self.totalScore = totalScore
-            self.orderIndex = orderIndex
-            
-            // 自动设置时间戳
-            let now = Date()
-            self.createdAt = now
-            self.updatedAt = now
+        self.name = name
+        self.totalScore = totalScore
+        self.orderIndex = orderIndex
+        
+        // 自动设置时间戳
+        let now = Date()
+        self.createdAt = now
+        self.updatedAt = now
     }
     
     /// 更新数据时调用此方法来刷新 updatedAt 时间戳
@@ -498,4 +534,3 @@ struct DataDiagnostics {
     }
 }
 #endif
-// ... existing code ...

@@ -84,11 +84,15 @@ struct DashboardView: View {
                         // 科目成绩卡片
                         ForEach(subjects.prefix(4)) { subject in
                             if let latestExam = getLatestExam(for: subject) {
+                                let series: [SubjectScoreLineChart.Series] = [
+                                    .init(name: subject.name, type: .myScore, dataPoints: subject.getScoreDataPoints())
+                                ]
                                 SubjectScoreLineChart(
                                     subjectName: subject.name,
                                     score: latestExam.score,
                                     date: latestExam.date,
-                                    iconSystemName: getSubjectIcon(for: subject)
+                                    iconSystemName: getSubjectIcon(for: subject),
+                                    series: series
                                 )
                             }
                         }
