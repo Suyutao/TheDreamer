@@ -58,6 +58,30 @@ struct AnalysisView: View {
     @State private var addableDataType: AddableDataType? = nil
     @State private var showingAddDataSheet = false
     
+    // 新增：趋势视图相关状态
+    @State private var showingTrendView = false
+    @State private var selectedTrendSubjects: Set<Subject.ID> = []
+    @State private var trendDateRange: TrendDateRange = .recent30Days
+    
+    enum TrendDateRange: String, CaseIterable {
+        case all = "全部"
+        case recent30Days = "近30天"
+        case recent90Days = "近90天"
+        case custom = "自定义"
+        
+        var dateFilter: Date? {
+            let calendar = Calendar.current
+            switch self {
+            case .all, .custom:
+                return nil
+            case .recent30Days:
+                return calendar.date(byAdding: .day, value: -30, to: Date())
+            case .recent90Days:
+                return calendar.date(byAdding: .day, value: -90, to: Date())
+            }
+        }
+    }
+    
     // 获取可用的图表类型
     private var availableCharts: [(name: String, icon: String, destination: AnyView)] {
         // 准备折线图数据点（我的分数）
@@ -136,8 +160,26 @@ struct AnalysisView: View {
                                     }
                                     
                                     Spacer()
+
+                                    // 迷你趋势图（最近8次得分率）
+                                    let points = subject.getScoreDataPoints().sorted { $0.date < $1.date }
+                                    let recent = Array(points.suffix(8))
+                                    if !recent.isEmpty {
+                                        Chart(Array(recent.enumerated()), id: \.offset) { idx, point in
+                                            BarMark(
+                                                x: .value("Index", idx),
+                                                y: .value("ScoreRate", point.scoreRate)
+                                            )
+                                            .foregroundStyle(Color.orange)
+                                            .cornerRadius(2)
+                                        }
+                                        .chartXAxis(.hidden)
+                                        .chartYAxis(.hidden)
+                                        .frame(width: 90, height: 26)
+                                        .accessibilityLabel("最近趋势图")
+                                    }
                                     
-                                    // 显示该科目的考试数量
+                                    // 考试数量徽标
                                     if !subject.exams.isEmpty {
                                         Text("\(subject.exams.count)")
                                             .font(.caption)
@@ -182,6 +224,27 @@ struct AnalysisView: View {
                                     .background(Color(.systemGray5))
                                     .clipShape(Capsule())
                             }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    
+                    // 趋势分析
+                    NavigationLink(destination: TrendAnalysisView(
+                        selectedSubjects: Set(subjects.prefix(3).map { $0.id }),
+                        dateRange: .all
+                    )) {
+                        HStack {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .foregroundColor(.orange)
+                                .frame(width: 24, height: 24)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("趋势分析")
+                                    .font(.headline)
+                                Text("查看分数趋势与科目表现")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
                         }
                         .padding(.vertical, 4)
                     }
