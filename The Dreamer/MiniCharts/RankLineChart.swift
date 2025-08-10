@@ -1,6 +1,6 @@
 import SwiftUI
 
-// 排名折线图 - 可复用组件（当前为静态UI占位，不含Swift Charts绘制）
+// 排名折线图 - 可复用组件（样式与 SubjectScoreLineChart 保持一致）
 struct RankLineChart: View {
     let rank: Int
     let total: Int
@@ -14,73 +14,69 @@ struct RankLineChart: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 10) {
-                HStack(alignment: .top, spacing: 2) {
-                    Text("􀉪")
-                        .font(.system(size: 12))
-                        .lineSpacing(16)
-                        .foregroundColor((.blue))
-                    HStack(spacing: 0) {
-                        Text("班级")
-                            .font(.system(size: 12))
-                            .lineSpacing(16)
-                            .foregroundColor((.blue))
-                        Text("排名")
-                            .font(.system(size: 12))
-                            .lineSpacing(16)
-                            .foregroundColor((.blue))
-                    }
+            // 头部：图标 + 标题 | 日期 + 导航箭头
+            HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: 4) {
+                    Image(systemName: "trophy.fill")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.orange)
+                    Text("班级排名")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.orange)
                 }
-                HStack(alignment: .top, spacing: 2) {
+                
+                Spacer()
+                
+                HStack(alignment: .center, spacing: 6) {
                     Text(formattedDate)
-                        .font(.system(size: 12))
-                        .lineSpacing(16)
-                        .foregroundColor(.secondary)
-                    Text("􀆊")
-                        .font(.system(size: 12))
-                        .lineSpacing(16)
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.85))
+                    Image(systemName: "chevron.right")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.secondary.opacity(0.60))
                 }
             }
-            HStack(alignment: .bottom, spacing: 10) {
-                VStack(alignment: .leading, spacing: 7) {
+            
+            Spacer()
+            
+            // 主体：最新排名 + 图表占位
+            HStack(alignment: .bottom, spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text("最新")
-                        .font(.system(size: 12))
-                        .lineSpacing(16)
-                        .foregroundColor(.secondary)
-                    HStack(alignment: .bottom, spacing: 2) {
+                        .font(.subheadline.bold())
+                        .foregroundColor(.primary.opacity(0.50))
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text("\(rank)")
-                            .font(Font.custom("SF Pro Rounded", size: 27).weight(.semibold))
-                            .lineSpacing(22)
+                            .font(.system(size: 27, weight: .semibold, design: .rounded))
                             .foregroundColor(.primary)
                         Text("/\(total)人")
-                            .font(.system(size: 12))
-                            .lineSpacing(16)
-                            .foregroundColor(.secondary)
+                            .font(.subheadline.bold())
+                            .foregroundColor(.primary.opacity(0.50))
                     }
                 }
-                .frame(height: 48)
-                ZStack() {
+                
+                Spacer()
+                
+                ZStack {
                     Text("图表预留处")
-                        .font(.system(size: 12))
-                        .lineSpacing(16)
-                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary.opacity(0.60))
                         .offset(x: 0, y: 0.50)
                 }
                 .frame(width: 86)
-                .cornerRadius(11)
+                .cornerRadius(12)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 11)
+                    RoundedRectangle(cornerRadius: 12)
                         .inset(by: 0.50)
-                        .stroke(.secondary)
+                        .stroke(
+                            Color.primary.opacity(0.12), lineWidth: 0.50
+                        )
                 )
             }
-            .frame(height: 53)
         }
-        .padding(EdgeInsets(top: 15, leading: 15, bottom: 20, trailing: 15))
-        .frame(maxWidth: .infinity)
+        .padding(16)
         .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(26)
+        .cornerRadius(24)
     }
 }
 
