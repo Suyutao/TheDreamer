@@ -89,6 +89,42 @@ struct DebugSettingsView: View {
                     .padding(.vertical, 8)
                 }
                 
+                // 数据修复分组
+                Section("数据修复") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "wrench.and.screwdriver.fill")
+                                .foregroundColor(.orange)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("修复分数显示异常")
+                                    .font(.headline)
+                                    .foregroundColor(.orange)
+                                
+                                Text("检查并修复可能存在的分数/满分颠倒问题")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Button(action: {
+                            fixScoreDisplayIssues()
+                        }) {
+                            HStack {
+                                Spacer()
+                                Text("执行数据修复")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                    }
+                    .padding(.vertical, 8)
+                }
+                
                 // 调试信息分组
                 Section("调试信息") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -171,6 +207,42 @@ struct DebugSettingsView: View {
             
         } catch {
             print("[\(Date())] 清除数据失败: \(error.localizedDescription)")
+        }
+    }
+    
+    /// 修复分数显示异常
+    private func fixScoreDisplayIssues() {
+        do {
+            let exams = try modelContext.fetch(FetchDescriptor<Exam>())
+            var fixedCount = 0
+            
+            for exam in exams {
+                if let subject = exam.subject {
+                    let subjectTotal = subject.totalScore
+                    // 情况A：分数和满分明显颠倒（score>totalScore 且 score 接近科目满分）
+                    let caseA = exam.score > exam.totalScore && abs(exam.score - subjectTotal) < 0.1
+                    // 情况B：分数为0，但"满分"看起来像实际得分（>0 且 != 科目满分 且 <= 科目满分）
+                    let caseB = exam.score == 0 && exam.totalScore > 0 && abs(exam.totalScore - subjectTotal) > 0.1 && exam.totalScore <= subjectTotal
+                    
+                    if caseA || caseB {
+                        let originalScore = exam.score
+                        let originalTotal = exam.totalScore
+                        
+                        exam.score = originalTotal
+                        exam.totalScore = originalScore
+                        exam.markAsUpdated()
+                        
+                        fixedCount += 1
+                        print("[\(Date())] 修复考试：\(exam.name), 分数：\(originalScore) -> \(exam.score), 满分：\(originalTotal) -> \(exam.totalScore)")
+                    }
+                }
+            }
+            
+            try modelContext.save()
+            print("[\(Date())] 数据修复完成，共修复 \(fixedCount) 条记录")
+            
+        } catch {
+            print("[\(Date())] 数据修复失败：\(error.localizedDescription)")
         }
     }
 }
