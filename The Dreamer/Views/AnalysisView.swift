@@ -831,7 +831,7 @@ struct ExamRowView: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text("\(exam.totalScore, specifier: "%.1f")")
+                Text("\(exam.score, specifier: "%.1f")")
                     .font(.title2)
                     .fontWeight(.bold)
                 Text(exam.date, style: .date)

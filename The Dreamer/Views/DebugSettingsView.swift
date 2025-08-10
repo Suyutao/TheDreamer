@@ -20,13 +20,76 @@ struct DebugSettingsView: View {
     @State private var showingDeleteConfirmation = false
     @State private var showValidationError = false
     
+    // 数据修复相关状态
+    @State private var showingFixResultAlert = false
+    @State private var fixResultMessage = ""
+    
     // 定义验证文本常量
     private let deleteConfirmationKeyword = "确认删除所有数据"
     
     var body: some View {
         NavigationStack {
             List {
-                // 危险操作分组
+                // 数据修复分组（移到前面）
+                Section("数据修复") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "wrench.and.screwdriver.fill")
+                                .foregroundColor(.orange)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("修复分数和满分异常")
+                                    .font(.headline)
+                                    .foregroundColor(.orange)
+                                
+                                Text("检查并修复分数/满分颠倒问题，同时同步科目满分设置")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Button(action: {
+                            fixScoreDisplayIssues()
+                        }) {
+                            HStack {
+                                Spacer()
+                                Text("执行数据修复")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                // 调试信息分组
+                Section("调试信息") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(.blue)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("应用版本")
+                                    .font(.headline)
+                                Text("v6.0 (Debug Mode)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        // 数据计数信息
+                        DataCountView()
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                // 危险操作分组（移到最后）
                 Section("危险操作") {
                     // 清除所有数据（带安全验证）
                     VStack(alignment: .leading, spacing: 12) {
@@ -159,6 +222,7 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            // 删除确认弹窗
             .alert("确认操作", isPresented: $showingDeleteConfirmation) {
                 Button("取消", role: .cancel) { }
                 Button("确认删除", role: .destructive) {
@@ -166,6 +230,12 @@ struct DebugSettingsView: View {
                 }
             } message: {
                 Text("此操作将永久删除所有数据，确定要继续吗？")
+            }
+            // 数据修复结果弹窗
+            .alert("数据修复完成", isPresented: $showingFixResultAlert) {
+                Button("好的", role: .cancel) { }
+            } message: {
+                Text(fixResultMessage)
             }
         }
     }
@@ -210,11 +280,12 @@ struct DebugSettingsView: View {
         }
     }
     
-    /// 修复分数显示异常
+    /// 修复分数/满分异常并同步科目满分
     private func fixScoreDisplayIssues() {
         do {
             let exams = try modelContext.fetch(FetchDescriptor<Exam>())
             var fixedCount = 0
+            var syncedTotalCount = 0
             
             for exam in exams {
                 if let subject = exam.subject {
@@ -235,14 +306,27 @@ struct DebugSettingsView: View {
                         fixedCount += 1
                         print("[\(Date())] 修复考试：\(exam.name), 分数：\(originalScore) -> \(exam.score), 满分：\(originalTotal) -> \(exam.totalScore)")
                     }
+                    
+                    // 同步满分到科目设置（若不一致）
+                    if abs(exam.totalScore - subjectTotal) > 0.001 {
+                        exam.totalScore = subjectTotal
+                        exam.markAsUpdated()
+                        syncedTotalCount += 1
+                    }
                 }
             }
             
             try modelContext.save()
-            print("[\(Date())] 数据修复完成，共修复 \(fixedCount) 条记录")
+            let msg = "已修复 \(fixedCount) 条错误记录，已同步满分 \(syncedTotalCount) 条记录。"
+            fixResultMessage = msg
+            showingFixResultAlert = true
+            print("[\(Date())] 数据修复完成：\(msg)")
             
         } catch {
-            print("[\(Date())] 数据修复失败：\(error.localizedDescription)")
+            let msg = "数据修复失败：\(error.localizedDescription)"
+            fixResultMessage = msg
+            showingFixResultAlert = true
+            print("[\(Date())] \(msg)")
         }
     }
 }
