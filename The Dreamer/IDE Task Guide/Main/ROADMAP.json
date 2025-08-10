@@ -13,7 +13,6 @@
     "feature_branch": "feature/charts-v2",
     "bugfix_branch": "stabilization/bugfixes",
     "policy": {
-      "bugfix_window": "每天 19:30-20:00 统一处理非阻断性问题",
       "hotfix_scope": "仅崩溃、数据损坏、编译失败可立即处理",
       "merge_strategy": "bugfix -> main（快速合并）；feature -> main 通过 PR，在通过构建与里程碑验收后合入"
     }
