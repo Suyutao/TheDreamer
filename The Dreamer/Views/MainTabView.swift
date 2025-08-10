@@ -72,9 +72,12 @@ struct MainTabView: View {
                 // 5. 检查并清理 Practice 中的无效 Subject 引用
                 cleanInvalidPractices()
                 
+                // 6. 回填迁移后新增的可选时间戳字段，保障后续逻辑稳定
+                backfillMissingTimestamps()
+                
                 // 保存更改
                 try modelContext.save()
-                print("[\(Date())] 数据完整性检查完成，所有异常数据已清理")
+                print("[\(Date())] 数据完整性检查完成，所有异常数据已清理并完成时间戳回填")
                 
                 // 标记已完成首次检查
                 UserDefaults.standard.set(true, forKey: "HasPerformedInitialDataCheck")
@@ -164,6 +167,48 @@ struct MainTabView: View {
         }
     }
 
+    
+    /// 回填迁移后新增的可选时间戳字段，避免 nil 影响后续逻辑
+    private func backfillMissingTimestamps() {
+        let now = Date()
+        do {
+            // Subject: 用首个考试日期或当前时间
+            let subjects = try modelContext.fetch(FetchDescriptor<Subject>())
+            for s in subjects {
+                if s.createdAt == nil {
+                    let firstExamDate = s.exams.sorted(by: { $0.date < $1.date }).first?.date
+                    s.createdAt = firstExamDate ?? now
+                }
+                if s.updatedAt == nil { s.updatedAt = s.createdAt ?? now }
+            }
+            
+            // Exam: 用自身日期
+            let exams = try modelContext.fetch(FetchDescriptor<Exam>())
+            for e in exams {
+                if e.createdAt == nil { e.createdAt = e.date }
+                if e.updatedAt == nil { e.updatedAt = e.createdAt ?? now }
+            }
+            
+            // PracticeCollection: 用首个练习日期或当前时间
+            let collections = try modelContext.fetch(FetchDescriptor<PracticeCollection>())
+            for c in collections {
+                if c.createdAt == nil {
+                    let firstPracticeDate = c.practices.sorted(by: { $0.date < $1.date }).first?.date
+                    c.createdAt = firstPracticeDate ?? now
+                }
+                if c.updatedAt == nil { c.updatedAt = c.createdAt ?? now }
+            }
+            
+            // Practice: 用自身日期
+            let practices = try modelContext.fetch(FetchDescriptor<Practice>())
+            for p in practices {
+                if p.createdAt == nil { p.createdAt = p.date }
+                if p.updatedAt == nil { p.updatedAt = p.createdAt ?? now }
+            }
+        } catch {
+            print("[\(Date())] 时间戳回填失败: \(error.localizedDescription)")
+        }
+    }
 }
 
 #Preview {

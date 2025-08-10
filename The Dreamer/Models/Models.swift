@@ -70,9 +70,9 @@ final class Subject {
     
     // MARK: - 时间戳字段（架构增强）
     /// 数据创建时间戳
-    var createdAt: Date
+    var createdAt: Date?
     /// 数据最后修改时间戳
-    var updatedAt: Date
+    var updatedAt: Date?
     
     /// [V7] 关系: 一个科目下可以有多个"卷子模板"。
     @Relationship(deleteRule: .cascade, inverse: \PaperTemplate.subject)
@@ -206,9 +206,9 @@ final class Exam {
     
     // MARK: - 时间戳字段（架构增强）
     /// 数据创建时间戳
-    var createdAt: Date
+    var createdAt: Date?
     /// 数据最后修改时间戳
-    var updatedAt: Date
+    var updatedAt: Date?
     
     @Relationship(deleteRule: .cascade)
     var questions: [Question] = []
@@ -329,9 +329,9 @@ final class PracticeCollection {
     
     // MARK: - 时间戳字段（架构增强）
     /// 数据创建时间戳
-    var createdAt: Date
+    var createdAt: Date?
     /// 数据最后修改时间戳
-    var updatedAt: Date
+    var updatedAt: Date?
     
     /// [V18] 关系：一个练习组必须属于一个科目。
     var subject: Subject?
@@ -364,9 +364,9 @@ final class Practice {
     
     // MARK: - 时间戳字段（架构增强）
     /// 数据创建时间戳
-    var createdAt: Date
+    var createdAt: Date?
     /// 数据最后修改时间戳
-    var updatedAt: Date
+    var updatedAt: Date?
     
     /// [V18] 关系：一个练习必须属于一个练习组。
     var collection: PracticeCollection?
