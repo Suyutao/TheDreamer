@@ -6,218 +6,188 @@
 //
 
 // 功能简介：
-// 这个文件定义了考试详细视图界面。
-// 目前作为占位符视图，显示考试的基本信息和空状态提示。
-// 后续将扩展为完整的考试分析和详细数据展示界面。
+// 考试详细信息视图，以列表形式展示单次考试的详细信息。
+// 不包含图表和查询，专注于展示考试的基本信息和操作选项。
 
-// 常用名词解释：
-// - View: SwiftUI中的基本界面构建单元
-// - struct: 一种数据结构，用于封装相关的属性和功能
-// - body: View的必需属性，定义了界面的具体内容
-// - NavigationStack: 提供导航栏和层级导航的容器视图
-// - ScrollView: 可滚动的容器视图
-
-// 导入构建用户界面所需的SwiftUI框架
 import SwiftUI
-// 导入用于数据存储和管理的SwiftData框架
 import SwiftData
-// 导入图表框架用于绘制折线图
-import Charts
-// 导入Foundation框架用于基础数据类型和功能
 import Foundation
 
-// 定义一个结构体，表示考试详细视图界面
 struct ExamDetailView: View {
-    // 接收一个考试记录作为参数
     let exam: Exam
     
-    // 查询同一科目的所有考试记录，用于绘制折线图
-    @Query private var allExams: [Exam]
-    
-    // MARK: - 导航状态变量
-    // 控制是否显示编辑视图
     @State private var showingEditView = false
     
-    // 初始化方法，设置查询条件
+    // 简化的初始化方法，不再包含查询
     init(exam: Exam) {
         self.exam = exam
-        // 查询同一科目的所有考试，按日期排序
-        // 使用 subject 的 id 而不是 name 来避免访问失效对象
-        if let subject = exam.subject {
-            let subjectId = subject.persistentModelID
-            self._allExams = Query(
-                filter: #Predicate<Exam> { examItem in
-                    examItem.subject?.persistentModelID == subjectId
-                },
-                sort: \Exam.date
-            )
-        } else {
-            // 如果没有关联科目，查询所有没有科目的考试
-            self._allExams = Query(
-                filter: #Predicate<Exam> { examItem in
-                    examItem.subject == nil
-                },
-                sort: \Exam.date
-            )
-        }
     }
     
     // MARK: - 计算属性
     
-    /// 安全地获取科目名称，避免访问失效对象
+    /// 安全地获取科目名称
     private var safeSubjectName: String {
-        if let subject = exam.subject {
-            return subject.name
-        } else {
-            return "未知科目"
-        }
+        exam.subject?.name ?? "未分类"
     }
     
-    /// 生成折线图数据点
-    private var chartDataPoints: [ChartDataPoint] {
-        allExams.map { examItem in
-            // 安全地获取科目名称，避免访问失效对象
-            let subjectName: String
-            if let subject = examItem.subject {
-                subjectName = subject.name
-            } else {
-                subjectName = "未知科目"
-            }
-            
-            return ChartDataPoint(
-                date: examItem.date,
-                score: examItem.totalScore,
-                totalScore: examItem.subject?.totalScore ?? 100,
-                examName: examItem.name,
-                subject: subjectName,
-                type: .myScore
-            )
-        }
+    /// 计算得分率
+    private var scorePercentage: Double {
+        guard exam.totalScore > 0 else { return 0 }
+        return (exam.score / exam.totalScore) * 100
+    }
+    
+    /// 格式化日期
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter.string(from: exam.date)
+    }
+    
+    /// 格式化时间
+    private var formattedTime: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter.string(from: exam.date)
     }
     
     // 定义视图的主要内容
     var body: some View {
-        // 创建可滚动的视图容器
-        ScrollView {
-            // 垂直堆叠布局，元素之间间距为20点
-            VStack(spacing: 20) {
-                // MARK: - 基本信息卡片
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "doc.text")
-                            .foregroundColor(.blue)
-                        Text("考试名称")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text(exam.name)
-                            .fontWeight(.medium)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "book")
-                            .foregroundColor(.green)
-                        Text("科目")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text(safeSubjectName)
-                            .fontWeight(.medium)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.orange)
-                        Text("考试日期")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text(exam.date, style: .date)
-                            .fontWeight(.medium)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "number")
-                            .foregroundColor(.purple)
-                        Text("总分")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(Int(exam.totalScore))")
-                            .fontWeight(.medium)
-                    }
+        List {
+            // 样式标题
+            Section("样本详细信息") {
+                HStack {
+                    Text("科目")
+                    Spacer()
+                    Text(safeSubjectName)
+                        .foregroundColor(.secondary)
                 }
-                .dashboardPanel("考试信息")
-                
-                // MARK: - 折线图区域
-                Group {
-                    if chartDataPoints.count >= 2 {
-                        LineChartView(
-                            dataPoints: chartDataPoints,
-                            selectedSubject: safeSubjectName,
-                            visibleLines: [.myScore],
-                            chartStyle: .smooth,
-                            showYAxisAsPercentage: false
-                        )
-                    } else {
-                        EmptyStateView(
-                            iconName: "chart.line.uptrend.xyaxis",
-                            title: "成绩趋势",
-                            message: "需要至少2次考试记录才能显示趋势图"
-                        )
-                        .frame(height: 300)
-                    }
+                HStack {
+                    Text("考试名称")
+                    Spacer()
+                    Text(exam.name)
+                        .foregroundColor(.secondary)
                 }
-                .dashboardPanel("成绩趋势")
+                HStack {
+                    Text("日期")
+                    Spacer()
+                    Text(formattedDate)
+                        .foregroundColor(.secondary)
+                }
+                HStack {
+                    Text("时间")
+                    Spacer()
+                    Text(formattedTime)
+                        .foregroundColor(.secondary)
+                }
+                HStack {
+                    Text("分数")
+                    Spacer()
+                    Text("\(Int(exam.score)) / \(Int(exam.totalScore))")
+                        .foregroundColor(.secondary)
+                }
+                HStack {
+                    Text("得分率")
+                    Spacer()
+                    Text(String(format: "%.1f%%", scorePercentage))
+                        .foregroundColor(.secondary)
+                }
             }
-            .padding(.horizontal, 16)
-        }
-        // 设置导航栏标题为考试名称
-        .navigationTitle(exam.name)
-        // 使用大标题模式
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
-        #endif
-        // 添加工具栏按钮
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("编辑", systemImage: "pencil") {
+            
+            if let classRank = exam.classRank {
+                Section("班级排名") {
+                    HStack {
+                        Text("名次")
+                        Spacer()
+                        Text("第\(classRank.rank)名")
+                            .foregroundColor(.secondary)
+                    }
+                    if let avg = classRank.averageScore {
+                        HStack {
+                            Text("平均分")
+                            Spacer()
+                            Text(String(format: "%.1f", avg))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    if let median = classRank.medianScore {
+                        HStack {
+                            Text("中位分")
+                            Spacer()
+                            Text(String(format: "%.1f", median))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+            
+            if let gradeRank = exam.gradeRank {
+                Section("年级排名") {
+                    HStack {
+                        Text("名次")
+                        Spacer()
+                        Text("第\(gradeRank.rank)名")
+                            .foregroundColor(.secondary)
+                    }
+                    if let avg = gradeRank.averageScore {
+                        HStack {
+                            Text("平均分")
+                            Spacer()
+                            Text(String(format: "%.1f", avg))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    if let median = gradeRank.medianScore {
+                        HStack {
+                            Text("中位分")
+                            Spacer()
+                            Text(String(format: "%.1f", median))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+            
+            // 操作
+            Section {
+                Button {
                     showingEditView = true
+                } label: {
+                    HStack {
+                        Image(systemName: "pencil")
+                            .foregroundColor(.orange)
+                        Text("编辑考试")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
-        // 显示编辑视图
+        .navigationTitle("详细信息")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingEditView) {
             NavigationView {
                 AddDataView(dataType: Binding.constant(.exam), examToEdit: exam, preselectedSubject: nil)
             }
         }
-     }
- }
- 
+    }
+}
 
-// 预览代码，用于在设计时预览界面效果
 #Preview {
-    // 创建一个示例考试用于预览
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Subject.self, Exam.self, configurations: config)
     let context = container.mainContext
     
-    // 创建示例科目
     let subject = Subject(name: "数学", totalScore: 150, orderIndex: 0)
     context.insert(subject)
     
-    // 创建多个示例考试来展示折线图
-    let exams = [
-        Exam(name: "第一次月考", date: Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date(), score: 135.0, totalScore: 150.0, subject: subject),
-            Exam(name: "第二次月考", date: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(), score: 142.5, totalScore: 150.0, subject: subject),
-            Exam(name: "期中考试", date: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date(), score: 145.5, totalScore: 150.0, subject: subject),
-            Exam(name: "第三次月考", date: Date(), score: 148.0, totalScore: 150.0, subject: subject)
-    ]
-    
-    exams.forEach { context.insert($0) }
-    
-    // 保存上下文
+    let exam = Exam(name: "期中考试", date: Date(), score: 120, totalScore: 150, subject: subject)
+    context.insert(exam)
     try? context.save()
     
-    return NavigationStack {
-        ExamDetailView(exam: exams.last!)
-    }
-    .modelContainer(container)
+    return NavigationStack { ExamDetailView(exam: exam) }
+        .modelContainer(container)
 }
