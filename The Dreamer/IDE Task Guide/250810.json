@@ -1,0 +1,322 @@
+{
+  "taskId": "250810",
+  "taskName": "数据库界面重构与交互优化",
+  "description": "修复Sheet导航冲突、数据异常、添加时间选择器、优化成绩录入等核心体验问题",
+  "priority": "high",
+  "estimatedTime": "2-3h",
+  "dateCreated": "2025-01-10",
+  "technicalContext": {
+    "frameworks": ["SwiftUI", "SwiftData", "Swift Charts"],
+    "targetSDK": "iOS 26",
+    "buildCommand": "xcodebuild -project The Dreamer.xcodeproj -scheme The Dreamer -destination platform=iOS Simulator,name=iPhone 16 Pro clean build"
+  },
+  "phases": [
+    {
+      "phaseId": 1,
+      "name": "Sheet导航重构",
+      "priority": "critical",
+      "description": "解决NavigationLink导致的双工具栏问题，改回Sheet模式",
+      "tasks": [
+        {
+          "taskId": "1.1",
+          "title": "科目添加改为Sheet模式",
+          "description": "数据库-科目页面的添加按钮从NavigationLink改为Sheet弹出",
+          "owner": "@程序员",
+          "status": "[✓]",
+          "files": [
+            "Views/AnalysisView.swift",
+            "Views/ManageSubjectsView.swift"
+          ],
+          "steps": [
+            "检查当前科目添加的NavigationLink实现",
+            "替换为@State showingAddSubject + .sheet() 模式",
+            "确保添加完成后正确关闭Sheet"
+          ],
+          "acceptanceCriteria": [
+            "点击添加科目弹出Sheet而非导航",
+            "只有一层工具栏显示",
+            "添加成功后Sheet自动关闭"
+          ]
+        },
+        {
+          "taskId": "1.2", 
+          "title": "科目编辑改为Sheet模式",
+          "description": "编辑科目功能从NavigationLink改为Sheet弹出",
+          "owner": "@程序员",
+          "status": "[✓]",
+          "files": [
+            "Views/SubjectEditView.swift",
+            "Views/SubjectDetailView.swift"
+          ],
+          "steps": [
+            "检查当前编辑科目的NavigationLink实现",
+            "替换为@State showingEditSubject + .sheet() 模式",
+            "修复保存按钮禁用的逻辑问题"
+          ],
+          "acceptanceCriteria": [
+            "编辑科目弹出Sheet而非导航",
+            "保存按钮逻辑正常工作",
+            "数据修改正确保存"
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 2,
+      "name": "数据异常修复",
+      "priority": "high", 
+      "description": "解决科目名称混乱和满分数据不一致问题",
+      "tasks": [
+        {
+          "taskId": "2.1",
+          "title": "数据库诊断与修复",
+          "description": "检查并修复科目名称混乱、满分不一致的数据问题",
+          "owner": "@程序员",
+          "status": "[✓]",
+          "files": [
+            "Models/Models.swift"
+          ],
+          "steps": [
+            "添加数据诊断工具，输出当前所有科目和考试数据",
+            "分析数据异常原因（可能是模型迁移或关系映射问题）",
+            "提供数据修复建议或自动修复机制"
+          ],
+          "acceptanceCriteria": [
+            "能够识别数据异常问题",
+            "提供清晰的数据状态报告",
+            "不影响正常数据的完整性"
+          ]
+        },
+        {
+          "taskId": "2.2",
+          "title": "编辑保存按钮逻辑修复",
+          "description": "修复科目编辑页面保存按钮始终禁用的问题",
+          "owner": "@程序员", 
+          "status": "[✓]",
+          "files": [
+            "Views/SubjectEditView.swift"
+          ],
+          "steps": [
+            "检查保存按钮禁用条件的逻辑",
+            "确认表单验证规则是否过于严格",
+            "测试各种输入情况下的按钮状态"
+          ],
+          "acceptanceCriteria": [
+            "有效输入时保存按钮可点击",
+            "无效输入时保存按钮正确禁用",
+            "保存操作正常执行"
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 3,
+      "name": "设置页面简化",
+      "priority": "medium",
+      "description": "移除冗余的科目管理入口，保留考试组管理",
+      "tasks": [
+        {
+          "taskId": "3.1",
+          "title": "移除设置中的科目管理",
+          "description": "从设置页面删除科目管理入口，因为数据库已有此功能",
+          "owner": "@UI/UX设计师",
+          "status": "[✓]",
+          "files": [
+            "Views/SettingsView.swift"
+          ],
+          "steps": [
+            "定位设置页面中的科目管理入口",
+            "删除相关NavigationLink或Button",
+            "保留考试组管理功能"
+          ],
+          "acceptanceCriteria": [
+            "设置页面不再显示科目管理选项",
+            "考试组管理功能保持正常",
+            "页面布局仍然美观"
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 4,
+      "name": "数据库主页优化",
+      "priority": "medium",
+      "description": "在数据库主页添加快捷添加数据入口",
+      "tasks": [
+        {
+          "taskId": "4.1",
+          "title": "数据库主页添加数据入口",
+          "description": "在数据库主页右上角工具栏添加加号按钮",
+          "owner": "@UI/UX设计师",
+          "status": "[✓]",
+          "files": [
+            "Views/AnalysisView.swift"
+          ],
+          "steps": [
+            "在数据库主页导航栏添加加号按钮",
+            "点击弹出AddDataView的Sheet",
+            "确保与现有添加数据流程一致"
+          ],
+          "acceptanceCriteria": [
+            "数据库主页右上角显示加号按钮",
+            "点击弹出添加数据界面",
+            "添加流程与其他入口一致"
+          ]
+        },
+        {
+          "taskId": "4.2",
+          "title": "科目页面锁定添加",
+          "description": "从科目详情页添加数据时，锁定到对应科目",
+          "owner": "@程序员",
+          "status": "[✓]",
+          "files": [
+            "Views/AddDataView.swift",
+            "Views/SubjectDetailView.swift"
+          ],
+          "steps": [
+            "修改AddDataView支持预设科目参数",
+            "在科目详情页传递当前科目给AddDataView",
+            "锁定科目选择器并禁用修改"
+          ],
+          "acceptanceCriteria": [
+            "从科目页面添加时科目已预选",
+            "科目选择器显示为锁定状态",
+            "其他表单字段正常可编辑"
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 5,
+      "name": "时间选择增强",
+      "priority": "medium",
+      "description": "支持考试时间（不仅是日期）和数据录入时间戳",
+      "tasks": [
+        {
+          "taskId": "5.1",
+          "title": "考试时间选择器",
+          "description": "添加考试的具体时间选择，而不仅仅是日期",
+          "owner": "@程序员",
+          "status": "[ ]",
+          "files": [
+            "Models/Models.swift",
+            "Views/AddDataView.swift"
+          ],
+          "steps": [
+            "检查Exam模型的date字段是否支持完整时间",
+            "修改AddDataView的DatePicker为日期+时间模式",
+            "确保数据存储和显示都包含时间信息"
+          ],
+          "acceptanceCriteria": [
+            "可以选择考试的具体时间（小时:分钟）",
+            "时间信息正确存储到数据库",
+            "考试列表正确显示时间信息"
+          ]
+        },
+        {
+          "taskId": "5.2",
+          "title": "数据录入时间戳", 
+          "description": "为数据录入添加创建时间和修改时间字段",
+          "owner": "@架构师",
+          "status": "[ ]",
+          "files": [
+            "Models/Models.swift"
+          ],
+          "steps": [
+            "为Exam模型添加createdAt和updatedAt字段",
+            "在数据创建和修改时自动设置时间戳",
+            "考虑是否在UI中显示这些时间戳"
+          ],
+          "acceptanceCriteria": [
+            "新创建的数据包含创建时间",
+            "修改数据时更新修改时间",
+            "时间戳字段不影响现有功能"
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 6,
+      "name": "成绩录入优化",
+      "priority": "medium",
+      "description": "使用数字picker替代键盘输入，防止超出满分",
+      "tasks": [
+        {
+          "taskId": "6.1",
+          "title": "数字picker成绩录入",
+          "description": "将成绩TextField改为Picker或Stepper控件",
+          "owner": "@UI/UX设计师",
+          "status": "[ ]",
+          "files": [
+            "Views/AddDataView.swift"
+          ],
+          "steps": [
+            "分析当前成绩输入的UI组件",
+            "设计合适的picker或stepper界面",
+            "确保picker的最大值为对应科目的满分",
+            "支持小数输入（如果需要）"
+          ],
+          "acceptanceCriteria": [
+            "不再弹出数字键盘",
+            "无法输入超过满分的成绩",
+            "输入体验流畅且直观",
+            "支持必要的精度（整数或小数）"
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 7,
+      "name": "动画问题调查",
+      "priority": "low",
+      "description": "调查首次打开时导航动画消失的问题",
+      "tasks": [
+        {
+          "taskId": "7.1",
+          "title": "导航动画问题诊断",
+          "description": "调查首次打开数据库tab时导航动画消失的原因",
+          "owner": "@程序员",
+          "status": "[ ]",
+          "files": [
+            "Views/MainTabView.swift",
+            "Views/AnalysisView.swift"
+          ],
+          "steps": [
+            "复现问题：首次打开app直接到数据库tab点击项目",
+            "检查是否与SwiftData数据加载时机有关",
+            "测试添加延迟或预加载是否能解决",
+            "确认是否为iOS 26 Beta的已知问题"
+          ],
+          "acceptanceCriteria": [
+            "能够稳定复现问题",
+            "识别问题根本原因",
+            "提供临时或永久解决方案",
+            "不影响其他导航动画"
+          ]
+        }
+      ]
+    }
+  ],
+  "deliverables": [
+    "Sheet模式的科目添加和编辑界面",
+    "数据诊断和修复工具",
+    "简化的设置页面",
+    "增强的数据库主页",
+    "时间选择和时间戳支持",
+    "优化的成绩录入体验",
+    "导航动画问题分析报告"
+  ],
+  "riskMitigation": [
+    "数据修复前备份现有数据",
+    "Sheet模式改动需保持现有数据流不变",
+    "成绩录入方式改变需用户测试验证",
+    "分阶段实施，确保每个阶段都可编译运行"
+  ],
+  "testingStrategy": [
+    "每个Phase完成后进行编译测试",
+    "重点测试数据完整性和UI交互",
+    "验证各种边界情况和异常处理",
+    "确保现有功能不被破坏"
+  ],
+  "finalGoal": "打造流畅、稳定、高效的数据录入和管理体验，解决用户反馈的核心痛点"
+}

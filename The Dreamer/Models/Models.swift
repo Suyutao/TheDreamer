@@ -341,3 +341,97 @@ final class RankData {
     var medianScore: Double? // 中位分 (可选)
     var averageScore: Double? // 平均分 (可选)
 }
+#if DEBUG
+// MARK: - Data Diagnostics (DEBUG Only)
+struct DataDiagnostics {
+    private static func timestamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        return formatter.string(from: Date())
+    }
+
+    /// 生成数据诊断报告（不会修改任何数据）
+    static func generateReport(_ context: ModelContext) -> String {
+        var lines: [String] = []
+        func line(_ s: String) { lines.append(s) }
+        line("=== Data Diagnostics Report @ \(timestamp()) ===")
+        do {
+            // Subjects
+            let subjects = try context.fetch(FetchDescriptor<Subject>(sortBy: [
+                SortDescriptor(\.orderIndex),
+                SortDescriptor(\.name)
+            ]))
+            line("Subjects (\(subjects.count)):")
+            for s in subjects {
+                line(" - \(s.name) total: \(s.totalScore) | exams: \(s.exams.count) | templates: \(s.paperTemplates.count)")
+                if s.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    line("   [WARN] Empty subject name")
+                }
+                if !s.totalScore.isFinite || s.totalScore <= 0 {
+                    line("   [WARN] Invalid totalScore: \(s.totalScore)")
+                }
+                // Exam linkage & totalScore consistency
+                for e in s.exams {
+                    if e.subject !== s {
+                        line("   [WARN] Exam '\(e.name)' subject link mismatch")
+                    }
+                    if e.totalScore != s.totalScore {
+                        line("   [WARN] Exam '\(e.name)' totalScore (\(e.totalScore)) != subject total (\(s.totalScore))")
+                    }
+                }
+            }
+            // Duplicate subject names
+            let grouped = Dictionary(grouping: subjects, by: { $0.name })
+            for (name, arr) in grouped where arr.count > 1 {
+                line(" [WARN] Duplicate Subject name '\(name)' count: \(arr.count)")
+            }
+
+            // Exams
+            let exams = try context.fetch(FetchDescriptor<Exam>(sortBy: [
+                SortDescriptor(\.date),
+                SortDescriptor(\.name)
+            ]))
+            line("Exams (\(exams.count)):")
+            for e in exams {
+                let subjName = e.subject?.name ?? "(nil)"
+                line(" - \(e.name) @ \(e.date) | score: \(e.score)/\(e.totalScore) | subject: \(subjName)")
+                if e.subject == nil {
+                    line("   [WARN] Exam without subject")
+                }
+                if !e.totalScore.isFinite || e.totalScore <= 0 {
+                    line("   [WARN] Invalid exam totalScore: \(e.totalScore)")
+                }
+                if e.score < 0 || e.score > e.totalScore {
+                    line("   [WARN] Exam score out of range: \(e.score) not in [0, \(e.totalScore)]")
+                }
+            }
+
+            line("=== End of Report ===")
+            return lines.joined(separator: "\n")
+        } catch {
+            return "Diagnostics failed: \(error)"
+        }
+    }
+
+    /// 打印诊断报告到控制台（不会修改任何数据）
+    static func printReport(_ context: ModelContext) {
+        print(generateReport(context))
+    }
+
+    /// 提供自动修复建议（仅文字，不做任何修改）
+    static func suggestions(_ context: ModelContext) -> [String] {
+        var suggests: [String] = []
+        do {
+            let subjects = try context.fetch(FetchDescriptor<Subject>())
+            let grouped = Dictionary(grouping: subjects, by: { $0.name })
+            for (name, arr) in grouped where arr.count > 1 {
+                suggests.append("建议：合并或重命名重复的科目 ‘\(name)’（出现 \(arr.count) 次）")
+            }
+            return suggests
+        } catch {
+            return ["Failed to gather suggestions: \(error)"]
+        }
+    }
+}
+#endif
+// ... existing code ...

@@ -15,6 +15,11 @@ struct SubjectDetailView: View {
     
     let subjectID: PersistentIdentifier
     
+    // 状态变量控制sheet的显示
+    @State private var showingEditSheet = false
+    @State private var showingAddDataSheet = false
+    @State private var addableDataType: AddableDataType? = nil
+    
     init(subject: Subject) {
         self.subjectID = subject.persistentModelID
     }
@@ -113,16 +118,9 @@ struct SubjectDetailView: View {
                             .padding(.vertical, 4)
                         }
                         
-                        NavigationLink(destination: SubjectEditView(
-                            subject: subject,
-                            onSave: { name, totalScore, editedSubject in
-                                if let editedSubject = editedSubject {
-                                    editedSubject.name = name
-                                    editedSubject.totalScore = totalScore
-                                    try? modelContext.save()
-                                }
-                            }
-                        )) {
+                        Button(action: {
+                            showingEditSheet = true
+                        }) {
                             HStack {
                                 Image(systemName: "pencil")
                                     .foregroundColor(.orange)
@@ -141,16 +139,38 @@ struct SubjectDetailView: View {
                             }
                             .padding(.vertical, 4)
                         }
+                        .foregroundColor(.primary)
                     }
                 }
                 .navigationTitle(subject.name)
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        NavigationLink(destination: AddDataView(dataType: .constant(.exam), examToEdit: nil, preselectedSubject: subject)) {
+                        Button(action: {
+                            addableDataType = .exam
+                            showingAddDataSheet = true
+                        }) {
                             Image(systemName: "plus")
                         }
                     }
+                }
+                // 编辑科目的sheet
+                .sheet(isPresented: $showingEditSheet) {
+                    SubjectEditView(subject: subject) { name, totalScore, editedSubject in
+                        if let editedSubject = editedSubject {
+                            editedSubject.name = name
+                            editedSubject.totalScore = totalScore
+                            try? modelContext.save()
+                        }
+                    }
+                }
+                // 添加数据的sheet
+                .sheet(isPresented: $showingAddDataSheet) {
+                    AddDataView(
+                        dataType: $addableDataType,
+                        examToEdit: nil,
+                        preselectedSubject: subject
+                    )
                 }
             } else {
                 EmptyStateView(

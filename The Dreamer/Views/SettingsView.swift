@@ -19,7 +19,6 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     
     // 状态变量控制各个管理页面的显示
-    @State private var showingManageSubjects = false
     @State private var showingManageExamGroups = false
     @State private var showingDebugSettings = false
     @State private var showingAbout = false
@@ -32,35 +31,6 @@ struct SettingsView: View {
         NavigationStack {
             List {
                     Section("数据管理") {
-                        // 科目管理
-                        ZStack {
-                            Button(action: { showingManageSubjects = true }) {
-                                EmptyView()
-                            }
-                            .opacity(0)
-                            
-                            HStack {
-                                Image(systemName: "book.fill")
-                                    .foregroundColor(.blue)
-                                    .frame(width: 24)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("科目管理")
-                                        .foregroundColor(.primary)
-                                    Text("添加、编辑或删除科目")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        
                         // 考试组管理
                         ZStack {
                             Button(action: { showingManageExamGroups = true }) {
@@ -238,11 +208,7 @@ struct SettingsView: View {
                 }
             }
         }
-        // 科目管理页面
-        .sheet(isPresented: $showingManageSubjects) {
-            ManageSubjectsView()
-                .environment(\.modelContext, modelContext)
-        }
+
         // 考试组管理页面
         .sheet(isPresented: $showingManageExamGroups) {
             ExamGroupManagementView()

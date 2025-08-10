@@ -51,8 +51,12 @@ struct AnalysisView: View {
     // 查询所有可用的图表视图
     @Query(sort: \Exam.date, order: .reverse) private var exams: [Exam]
     
-    // 定义一个状态变量，用于控制设置界面是否显示
+    // 现有设置面板开关
     @State private var showingSettingsSheet = false
+    
+    // 新增：添加数据的状态（与 AllDataListView 保持一致）
+    @State private var addableDataType: AddableDataType? = nil
+    @State private var showingAddDataSheet = false
     
     // 获取可用的图表类型
     private var availableCharts: [(name: String, icon: String, destination: AnyView)] {
@@ -215,9 +219,35 @@ struct AnalysisView: View {
                         Image(systemName: "gear")
                     }
                 }
+                
+                // 新增：右上角添加数据按钮（考试/练习）
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Menu {
+                        Button {
+                            addableDataType = .exam
+                            DispatchQueue.main.async { showingAddDataSheet = true }
+                        } label: {
+                            Label("添加考试", systemImage: "doc.text.fill")
+                        }
+                        
+                        Button {
+                            addableDataType = .practice
+                            DispatchQueue.main.async { showingAddDataSheet = true }
+                        } label: {
+                            Label("添加练习", systemImage: "pencil.and.ruler.fill")
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
             }
             .sheet(isPresented: $showingSettingsSheet) {
                 SettingsView()
+                    .environment(\.modelContext, modelContext)
+            }
+            // 新增：展示添加数据视图
+            .sheet(isPresented: $showingAddDataSheet) {
+                AddDataView(dataType: $addableDataType, examToEdit: nil, preselectedSubject: nil)
                     .environment(\.modelContext, modelContext)
             }
         }

@@ -63,15 +63,10 @@ struct SubjectEditView: View {
         // 检查名称是否为空
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return true }
         
-        // 检查是否能转换为 Int
-        guard let score = Int(totalScoreText),
-              // 确保没有小数点 (通过比较Int和Double的转换结果)
-              Double(totalScoreText) == Double(score) else {
+        // 允许小数输入（如 150.0），但要求数值有效且 >= 1
+        guard let score = Double(totalScoreText), score.isFinite, score >= 1 else {
             return true
         }
-        
-        // 确保分数大于0
-        guard score >= 1 else { return true }
         
         // 检查是否与现有科目同名
         let existingSubject = subjects.first { $0.name == name && $0 != subject }
@@ -140,11 +135,10 @@ struct SubjectEditView: View {
     /// 保存科目信息
     /// 验证输入数据并调用 onSave 回调将数据传递给父视图
     private func save() {
-        // [V26] 使用 Int 进行转换
-        guard let scoreValue = Int(totalScoreText) else { return }
+        // [V26] 改为使用 Double 进行转换，支持诸如 "150.0" 的有效输入
+        guard let scoreValue = Double(totalScoreText) else { return }
         
-        // [V26] 将 Int 转换为 Double 传递出去，因为我们的模型需要 Double
-        onSave(name.trimmingCharacters(in: .whitespaces), Double(scoreValue), subject)
+        onSave(name.trimmingCharacters(in: .whitespaces), scoreValue, subject)
         dismiss()
     }
 }
