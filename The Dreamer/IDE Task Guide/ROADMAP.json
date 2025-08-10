@@ -118,6 +118,16 @@
       ]
     }
   ],
+  "backlog": {
+    "from_250810": [
+      { "id": "5.1", "title": "考试时间选择器", "priority": "medium", "estimate": "1h" },
+      { "id": "5.2", "title": "数据录入时间戳", "priority": "medium", "estimate": "0.5h" },
+      { "id": "6.1", "title": "数字picker成绩录入", "priority": "medium", "estimate": "2h" },
+      { "id": "6.3", "title": "保存成功Toast反馈", "priority": "low", "estimate": "1h" },
+      { "id": "7.1", "title": "导航动画问题诊断", "priority": "low", "estimate": "1.5h" }
+    ],
+    "policy": "backlog 项目在主线 Milestone 完成后统一评估，部分可能在 stabilization 阶段批量处理"
+  },
   "nextActions": [
     {
       "id": "N1",

@@ -344,6 +344,8 @@ struct ManageSubjectsView: View {
             logger.info("编辑现有科目: \(subject.name)")
             subject.name = name
             subject.totalScore = score
+            // 更新时间戳
+            subject.markAsUpdated()
             logger.info("成功编辑科目: \(subject.name), 新名称: \(name), 新分数: \(score)")
         } else {
             // 创建新科目
@@ -441,6 +443,8 @@ struct ManageSubjectsView: View {
         
         // 更新主科目的信息（使用新的满分值）
         primarySubject.totalScore = pending.score
+        // 更新时间戳
+        primarySubject.markAsUpdated()
         
         // 合并其他科目的数据到主科目
         for subjectToMerge in subjectsToMerge {

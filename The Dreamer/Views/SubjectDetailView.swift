@@ -160,6 +160,8 @@ struct SubjectDetailView: View {
                         if let editedSubject = editedSubject {
                             editedSubject.name = name
                             editedSubject.totalScore = totalScore
+                            // 更新时间戳
+                            editedSubject.markAsUpdated()
                             try? modelContext.save()
                         }
                     }

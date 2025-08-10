@@ -236,7 +236,7 @@
           "title": "数据录入时间戳", 
           "description": "为数据录入添加创建时间和修改时间字段",
           "owner": "@架构师",
-          "status": "[ ]",
+          "status": "[✓]",
           "files": [
             "Models/Models.swift"
           ],
@@ -249,7 +249,13 @@
             "新创建的数据包含创建时间",
             "修改数据时更新修改时间",
             "时间戳字段不影响现有功能"
-          ]
+          ],
+          "completedAt": "2025-01-08",
+          "implementation": {
+            "modelsUpdated": ["Subject", "Exam", "Practice", "PracticeCollection"],
+            "viewsUpdated": ["AddDataView", "ManageSubjectsView", "SubjectDetailView"],
+            "features": ["自动创建时间戳", "手动更新时间戳", "markAsUpdated()方法"]
+          }
         }
       ]
     },
@@ -377,5 +383,11 @@
     "验证各种边界情况和异常处理",
     "确保现有功能不被破坏"
   ],
-  "finalGoal": "打造流畅、稳定、高效的数据录入和管理体验，解决用户反馈的核心痛点"
+  "finalGoal": "打造流畅、稳定、高效的数据录入和管理体验，解决用户反馈的核心痛点",
+  "closedAt": "2025-08-10",
+  "closure": {
+    "movedTasks": ["5.1", "5.2", "6.1", "6.3", "7.1"],
+    "destination": "IDE Task Guide/ROADMAP.json",
+    "note": "切换到图表主线开发（charts-v2），将非阻断性优化迁移到Roadmap管理"
+  }
 }

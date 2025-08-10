@@ -447,6 +447,9 @@ struct AddDataView: View {
                 exam.examGroup = selectedExamGroup
                 // 注意：编辑模式下不允许更改科目，所以不更新subject
                 
+                // 更新时间戳
+                exam.markAsUpdated()
+                
                 try modelContext.save()
                 print("\(Date()) [AddDataView] 成功更新考试：\(examName), 分数：\(scoreValue), 考试组：\(selectedExamGroup?.name ?? "无")")
             } catch {
