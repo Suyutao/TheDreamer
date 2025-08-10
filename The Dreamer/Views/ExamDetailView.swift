@@ -166,6 +166,7 @@ struct ExamDetailView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .navigationTitle("详细信息")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingEditView) {
