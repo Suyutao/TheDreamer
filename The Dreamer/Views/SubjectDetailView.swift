@@ -53,8 +53,8 @@ struct SubjectDetailView: View {
     var body: some View {
         Group {
             if let subject = modelContext.model(for: subjectID) as? Subject {
-                ScrollView {
-                    LazyVStack(spacing: 16) {
+                List {
+                    Section {
                         // 科目成绩图表卡片
                         if let latestExam = getLatestExam(for: subject) {
                             SubjectScoreLineChart(
@@ -63,6 +63,8 @@ struct SubjectDetailView: View {
                                 date: latestExam.date,
                                 iconSystemName: getSubjectIcon(for: subject)
                             )
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
                         } else {
                             // 如果没有考试数据，显示空状态卡片
                             VStack(spacing: 12) {
@@ -85,73 +87,61 @@ struct SubjectDetailView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(Color(.systemGray4), lineWidth: 1)
                             )
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                        }
+                    }
+                    
+                    Section {
+                        NavigationLink(destination: SubjectDataView(subject: subject)) {
+                            HStack {
+                                Image(systemName: "chart.bar.fill")
+                                    .foregroundColor(.blue)
+                                    .frame(width: 24, height: 24)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("所有数据")
+                                        .font(.headline)
+                                    Text("查看该科目的所有考试记录")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.vertical, 4)
                         }
                         
-                        // 操作选项列表
-                        VStack(spacing: 0) {
-                            NavigationLink(destination: SubjectDataView(subject: subject)) {
-                                HStack {
-                                    Image(systemName: "chart.bar.fill")
-                                        .foregroundColor(.blue)
-                                        .frame(width: 24, height: 24)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("所有数据")
-                                            .font(.headline)
-                                        Text("查看该科目的所有考试记录")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
+                        NavigationLink(destination: SubjectEditView(
+                            subject: subject,
+                            onSave: { name, totalScore, editedSubject in
+                                if let editedSubject = editedSubject {
+                                    editedSubject.name = name
+                                    editedSubject.totalScore = totalScore
+                                    try? modelContext.save()
                                 }
-                                .padding()
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Divider()
-                                .padding(.leading, 52)
-                            
-                            NavigationLink(destination: SubjectEditView(
-                                subject: subject,
-                                onSave: { name, totalScore, editedSubject in
-                                    if let editedSubject = editedSubject {
-                                        editedSubject.name = name
-                                        editedSubject.totalScore = totalScore
-                                        try? modelContext.save()
-                                    }
-                                }
-                            )) {
-                                HStack {
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(.orange)
-                                        .frame(width: 24, height: 24)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("编辑科目")
-                                            .font(.headline)
-                                        Text("修改科目名称和满分")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
+                        )) {
+                            HStack {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.orange)
+                                    .frame(width: 24, height: 24)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("编辑科目")
+                                        .font(.headline)
+                                    Text("修改科目名称和满分")
                                         .font(.caption)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondary)
                                 }
-                                .padding()
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 4)
                         }
-                        .background(Color(.systemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.systemGray5), lineWidth: 0.5)
-                        )
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 20)
                 }
                 .navigationTitle(subject.name)
                 .navigationBarTitleDisplayMode(.large)

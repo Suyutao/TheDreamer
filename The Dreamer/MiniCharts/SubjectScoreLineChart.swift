@@ -15,11 +15,11 @@ struct SubjectScoreLineChart: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .center, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center) {
                 HStack(alignment: .center, spacing: 4) {
                     Image(systemName: iconSystemName)
-                        .font(.subheadline)
+                        .font(.subheadline.bold())
                         .foregroundColor(.orange)
                     Text(subjectName)
                         .font(.subheadline.bold())
@@ -28,33 +28,32 @@ struct SubjectScoreLineChart: View {
                 
                 Spacer()
                 
-                HStack(alignment: .top, spacing: 4) {
+                HStack(alignment: .center, spacing: 6) {
                     Text(formattedDate)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.85))
                     Image(systemName: "chevron.right")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.subheadline.bold())
+                        .foregroundColor(.secondary.opacity(0.60))
                 }
             }
             
             Spacer()
             
             HStack(alignment: .bottom, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text("最新")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary.opacity(0.60))
-                    HStack(alignment: .bottom, spacing: 4) {
+                        .font(.subheadline.bold())
+                        .foregroundColor(.primary.opacity(0.50))
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text("\(Int(score))")
                             .font(.system(size: 27, weight: .semibold, design: .rounded))
                             .foregroundColor(.primary)
                         Text("分")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.subheadline.bold())
+                            .foregroundColor(.primary.opacity(0.50))
                     }
                 }
-                .frame(height: 48)
                 
                 Spacer()
                 
@@ -74,11 +73,9 @@ struct SubjectScoreLineChart: View {
                         )
                 )
             }
-            .frame(height: 52)
         }
         .padding(16)
-        .frame(width: 360, height: 136)
-        .background(Color(.secondarySystemBackground))
+        .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(24)
     }
 }

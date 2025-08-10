@@ -80,7 +80,6 @@ struct DashboardView: View {
                             .foregroundColor(.blue)
                         }
                         .padding(.top, 10)
-                        .padding(.horizontal, 40)
                         
                         // 科目成绩卡片
                         ForEach(subjects.prefix(4)) { subject in
@@ -91,7 +90,6 @@ struct DashboardView: View {
                                     date: latestExam.date,
                                     iconSystemName: getSubjectIcon(for: subject)
                                 )
-                                .padding(.horizontal)
                             }
                         }
                         
@@ -108,6 +106,7 @@ struct DashboardView: View {
                 }
                 .padding(.horizontal, 20)
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("第 \(currentWeek) 周摘要")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
