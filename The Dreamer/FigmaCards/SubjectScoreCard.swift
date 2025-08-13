@@ -9,14 +9,25 @@ import Charts
 /// - 左下："最新" 标签 + 数值与单位
 /// - 右下：迷你折线图占位（使用内置迷你图组件或空态框）
 struct SubjectScoreCard: View {
+    // 科目分数序列数据类型定义（从 SubjectScoreLineChart 迁移）
+    struct Series: Identifiable {
+        let id = UUID()
+        let name: String
+        let type: LineType // 复用 Charts/LineChartView.swift 的 LineType
+        let dataPoints: [ChartDataPoint]
+    }
+    
     // 基本数据
     let subjectName: String
     let scoreText: String
     let date: Date
     var iconSystemName: String = "function"
 
-    // 迷你图数据（可选）
-    var miniSeries: [SubjectScoreLineChart.Series] = []
+    // 迷你图数据（可选），支持完整的系列数据
+    var miniSeries: [Series] = []
+    
+    // 新增：是否将Y轴显示为百分比（从 SubjectScoreLineChart 迁移）
+    var showYAxisAsPercentage: Bool = false
 
     private var formattedDate: String {
         let f = DateFormatter()
@@ -66,17 +77,21 @@ struct SubjectScoreCard: View {
 
                 // 右侧迷你图/占位
                 if miniSeries.flatMap({ $0.dataPoints }).isEmpty {
-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
-                        .stroke(Color.black.opacity(0.12), lineWidth: 1)
-                        .frame(width: 86, height: 50)
-                        .overlay(
-                            Text("图表预留处")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.secondary)
-                        )
+                    ZStack {
+                        Text("暂无数据")
+                            .font(.caption2)
+                            .foregroundColor(.secondary.opacity(0.60))
+                    }
+                    .frame(width: 86, height: 50)
+                    .background(Color(.tertiarySystemGroupedBackground))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.secondary.opacity(0.30), lineWidth: 1)
+                    )
                 } else {
-                    // 复用现有迷你图样式：使用组件内部的微型绘制区域
-                    SubjectScoreMiniChart(series: miniSeries)
+                    // 使用优化的内联迷你图实现，支持百分比显示
+                    SubjectScoreMiniChart(series: miniSeries, showYAxisAsPercentage: showYAxisAsPercentage)
                 }
             }
         }
@@ -88,24 +103,8 @@ struct SubjectScoreCard: View {
 
 // MARK: - Mini Chart Wrapper
 private struct SubjectScoreMiniChart: View {
-    var series: [SubjectScoreLineChart.Series]
-
-    var body: some View {
-        // 仅绘制线，不展示坐标
-        ChartContainer(series: series)
-            .frame(width: 86, height: 50)
-            .background(Color(.tertiarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
-            )
-    }
-}
-
-// MARK: - ChartContainer（极简绘制）
-private struct ChartContainer: View {
-    var series: [SubjectScoreLineChart.Series]
+    var series: [SubjectScoreCard.Series]
+    var showYAxisAsPercentage: Bool = false
 
     var body: some View {
         Chart {
@@ -113,16 +112,26 @@ private struct ChartContainer: View {
                 ForEach(s.dataPoints) { p in
                     LineMark(
                         x: .value("时间", p.date),
-                        y: .value("分数", p.score)
+                        y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
                     )
                     .foregroundStyle(s.type.color)
-                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: s.type.isDashed ? [3,2] : []))
+                    .lineStyle(StrokeStyle(
+                        lineWidth: 1.5,
+                        dash: s.type.isDashed ? [3, 2] : []
+                    ))
                     .interpolationMethod(.catmullRom)
                 }
             }
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
+        .frame(width: 86, height: 50)
+        .background(Color(.tertiarySystemGroupedBackground))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.secondary.opacity(0.30), lineWidth: 1)
+        )
         .allowsHitTesting(false)
     }
 }
@@ -134,7 +143,7 @@ private struct ChartContainer: View {
         ChartDataPoint(date: Date().addingTimeInterval(-86400*5), score: 125, totalScore: 150, examName: "月考", subject: "数学", type: .myScore),
         ChartDataPoint(date: Date(), score: 130, totalScore: 150, examName: "期中", subject: "数学", type: .myScore)
     ]
-    let s: [SubjectScoreLineChart.Series] = [ .init(name: "我的分数", type: .myScore, dataPoints: points) ]
+    let s: [SubjectScoreCard.Series] = [ .init(name: "我的分数", type: .myScore, dataPoints: points) ]
 
     return VStack {
         SubjectScoreCard(subjectName: "数学", scoreText: "125", date: Date(), miniSeries: s)

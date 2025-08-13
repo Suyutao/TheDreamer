@@ -84,7 +84,7 @@ struct DashboardView: View {
                         // 科目成绩卡片（Figma卡片预览用）
                         ForEach(subjects.prefix(2)) { subject in
                             if let latestExam = getLatestExam(for: subject) {
-                                let series: [SubjectScoreLineChart.Series] = [
+                                let series: [SubjectScoreCard.Series] = [
                                     .init(name: subject.name, type: .myScore, dataPoints: subject.getScoreDataPoints())
                                 ]
                                 SubjectScoreCard(
@@ -112,9 +112,27 @@ struct DashboardView: View {
                             v1
                                 .padding(.horizontal, 0)
                             
-                            // 示例：排名卡片
-                            ClassRankingCard(rank: 10, total: 20, date: Date())
-                                .padding(.top, 8)
+                            // 示例：班级排名卡片
+                            Group {
+                                Text("班级排名卡片 (28_2838)")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
+                                    .padding(.top)
+                            
+                                // 构造一个简短的示例趋势序列（若真实数据源可用，请替换）
+                                let rankSeries: [RankDataPoint] = [
+                                    RankDataPoint(date: Date().addingTimeInterval(-86400*14), rank: 18, total: 50),
+                                    RankDataPoint(date: Date().addingTimeInterval(-86400*7), rank: 12, total: 50),
+                                    RankDataPoint(date: Date(), rank: 10, total: 50)
+                                ]
+                            
+                                ClassRankingCard(rank: 10, total: 20, date: Date(), rankSeries: rankSeries)
+                                    .padding(.horizontal)
+                            
+                                ClassRankingCard(rank: 3, total: 45, date: Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date())
+                                    .padding(.horizontal)
+                            }
                         }
                     }
                 }

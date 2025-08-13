@@ -55,7 +55,12 @@ struct FigmaCardsPreviewView: View {
                         ClassRankingCard(
                             rank: 10,
                             total: 20,
-                            date: Date()
+                            date: Date(),
+                            rankSeries: [
+                                RankDataPoint(date: Date().addingTimeInterval(-86400*6), rank: 14, total: 20),
+                                RankDataPoint(date: Date().addingTimeInterval(-86400*3), rank: 12, total: 20),
+                                RankDataPoint(date: Date(), rank: 10, total: 20)
+                            ]
                         )
                         .padding(.horizontal)
 

@@ -55,13 +55,13 @@ struct TrendAnalysisView: View {
     }
     
     /// 为每个选中科目生成序列数据
-    private func getSeriesForSubject(_ subject: Subject) -> [SubjectScoreLineChart.Series] {
+    private func getSeriesForSubject(_ subject: Subject) -> [SubjectScoreCard.Series] {
         let dataPoints = subject.getScoreDataPoints(in: effectiveDateRange)
         if dataPoints.isEmpty {
             return []
         }
         return [
-            SubjectScoreLineChart.Series(
+            SubjectScoreCard.Series(
                 name: subject.name,
                 type: .myScore,
                 dataPoints: dataPoints
@@ -213,12 +213,12 @@ struct TrendAnalysisView: View {
         let series = getSeriesForSubject(subject)
         let latestExam = subject.exams.sorted { $0.date > $1.date }.first
         
-        return SubjectScoreLineChart(
+        return SubjectScoreCard(
             subjectName: subject.name,
-            score: latestExam?.score ?? 0,
+            scoreText: String(Int(latestExam?.score ?? 0)),
             date: latestExam?.date ?? Date(),
             iconSystemName: getSubjectIcon(for: subject),
-            series: series,
+            miniSeries: series,
             showYAxisAsPercentage: showYAxisAsPercentage
         )
     }

@@ -62,15 +62,15 @@ struct SubjectDetailView: View {
                     Section {
                         // 科目成绩图表卡片
                         if let latestExam = getLatestExam(for: subject) {
-                            let series: [SubjectScoreLineChart.Series] = [
+                            let series: [SubjectScoreCard.Series] = [
                                 .init(name: subject.name, type: .myScore, dataPoints: subject.getScoreDataPoints())
                             ]
-                            SubjectScoreLineChart(
+                            SubjectScoreCard(
                                 subjectName: subject.name,
-                                score: latestExam.score,
+                                scoreText: String(Int(latestExam.score)),
                                 date: latestExam.date,
                                 iconSystemName: getSubjectIcon(for: subject),
-                                series: series
+                                miniSeries: series
                             )
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
