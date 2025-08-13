@@ -6,21 +6,7 @@ struct FigmaCardsPreviewView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack(spacing: 16) {
-                    // 标题
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Figma卡片组件")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        Text("基于Figma设计文件28_2000和28_2838的SwiftUI实现")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top)
-
-                    // 科目分数卡片示例
+                LazyVStack(spacing: 16) {// 科目分数卡片示例
                     Group {
                         Text("科目分数卡片 (28_2000)")
                             .font(.headline)
@@ -85,7 +71,7 @@ struct FigmaCardsPreviewView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Figma 卡片预览")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationSubtitle("基于Figma设计文件28_2000和28_2838的SwiftUI实现")
         }
     }
 }
