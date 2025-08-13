@@ -81,30 +81,40 @@ struct DashboardView: View {
                         }
                         .padding(.top, 10)
                         
-                        // 科目成绩卡片
-                        ForEach(subjects.prefix(4)) { subject in
+                        // 科目成绩卡片（Figma卡片预览用）
+                        ForEach(subjects.prefix(2)) { subject in
                             if let latestExam = getLatestExam(for: subject) {
                                 let series: [SubjectScoreLineChart.Series] = [
                                     .init(name: subject.name, type: .myScore, dataPoints: subject.getScoreDataPoints())
                                 ]
-                                SubjectScoreLineChart(
+                                SubjectScoreCard(
                                     subjectName: subject.name,
-                                    score: latestExam.score,
+                                    scoreText: String(Int(latestExam.score)),
                                     date: latestExam.date,
                                     iconSystemName: getSubjectIcon(for: subject),
-                                    series: series
+                                    miniSeries: series
                                 )
                             }
                         }
                         
-                        // 如果没有数据，显示空状态
+                        // 如果没有数据，展示示例卡片
                         if subjects.isEmpty || subjects.allSatisfy({ getLatestExam(for: $0) == nil }) {
-                            EmptyStateView(
-                                iconName: "chart.bar.fill",
-                                title: "暂无成绩数据",
-                                message: "添加一些考试记录后，这里将显示你的成绩摘要"
+                            // 示例：数学卡片
+                            let v1 = SubjectScoreCard(
+                                subjectName: "数学",
+                                scoreText: "125",
+                                date: Date(),
+                                iconSystemName: "function",
+                                miniSeries: [
+                                    .init(name: "我的分数", type: .myScore, dataPoints: [] )
+                                ]
                             )
-                            .padding(.horizontal)
+                            v1
+                                .padding(.horizontal, 0)
+                            
+                            // 示例：排名卡片
+                            ClassRankingCard(rank: 10, total: 20, date: Date())
+                                .padding(.top, 8)
                         }
                     }
                 }
