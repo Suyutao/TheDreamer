@@ -1,7 +1,8 @@
 import SwiftUI
 
 // MARK: - FigmaCardsPreviewView
-/// 展示Figma卡片组件的预览页面，用于测试和演示
+/// 展示Figma卡片组件的预览页面，用于测试】、
+
 struct FigmaCardsPreviewView: View {
     var body: some View {
         NavigationView {

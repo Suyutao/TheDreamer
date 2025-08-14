@@ -108,25 +108,54 @@ private struct RankMiniChart: View {
 
     var body: some View {
         Chart {
+            // 折线
             ForEach(series) { point in
                 LineMark(
                     x: .value("时间", point.date),
                     y: .value("排名", point.rankPercentage)
                 )
                 .foregroundStyle(.blue)
-                .lineStyle(StrokeStyle(lineWidth: 1.5))
+                .lineStyle(StrokeStyle(lineWidth: 2.5))
                 .interpolationMethod(.catmullRom)
+            }
+            
+            // 节点：过去灰色空心，最新蓝色实心
+            let sorted = series.sorted { $0.date < $1.date }
+            let lastID = sorted.last?.id
+            ForEach(sorted) { p in
+                if p.id == lastID {
+                    PointMark(
+                        x: .value("时间", p.date),
+                        y: .value("排名", p.rankPercentage)
+                    )
+                    .foregroundStyle(.blue)
+                    .symbolSize(34)
+                } else {
+                    // 历史节点：灰色空心
+                    PointMark(
+                        x: .value("时间", p.date),
+                        y: .value("排名", p.rankPercentage)
+                    )
+                    .foregroundStyle(.gray)
+                    .symbolSize(32)
+                    PointMark(
+                        x: .value("时间", p.date),
+                        y: .value("排名", p.rankPercentage)
+                    )
+                    .foregroundStyle(Color(.secondarySystemGroupedBackground))
+                    .symbolSize(16)
+                }
             }
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
+        .chartPlotStyle { plotArea in
+            plotArea
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .clipped()
+        }
         .frame(width: 86, height: 50)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.secondary.opacity(0.30), lineWidth: 1)
-        )
         .allowsHitTesting(false)
     }
 }

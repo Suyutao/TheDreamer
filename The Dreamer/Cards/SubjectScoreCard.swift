@@ -77,18 +77,10 @@ struct SubjectScoreCard: View {
 
                 // 右侧迷你图/占位
                 if miniSeries.flatMap({ $0.dataPoints }).isEmpty {
-                    ZStack {
-                        Text("暂无数据")
-                            .font(.caption2)
-                            .foregroundColor(.secondary.opacity(0.60))
-                    }
-                    .frame(width: 86, height: 50)
-                    .background(Color(.tertiarySystemGroupedBackground))
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(.secondary.opacity(0.30), lineWidth: 1)
-                    )
+                    Text("暂无数据")
+                        .font(.caption2)
+                        .foregroundColor(.secondary.opacity(0.60))
+                        .frame(width: 86, height: 50)
                 } else {
                     // 使用优化的内联迷你图实现，支持百分比显示
                     SubjectScoreMiniChart(series: miniSeries, showYAxisAsPercentage: showYAxisAsPercentage)
@@ -108,30 +100,64 @@ private struct SubjectScoreMiniChart: View {
 
     var body: some View {
         Chart {
+            // 折线
             ForEach(series) { s in
                 ForEach(s.dataPoints) { p in
                     LineMark(
                         x: .value("时间", p.date),
                         y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
                     )
-                    .foregroundStyle(s.type.color)
+                    .foregroundStyle(.gray)
                     .lineStyle(StrokeStyle(
-                        lineWidth: 1.5,
+                        lineWidth: 2.5,
                         dash: s.type.isDashed ? [3, 2] : []
                     ))
                     .interpolationMethod(.catmullRom)
                 }
             }
+            
+            // 节点（过去：灰色空心；最新：主题色实心）
+            ForEach(series) { s in
+                let sorted = s.dataPoints.sorted { $0.date < $1.date }
+                let lastID = sorted.last?.id
+                ForEach(sorted) { p in
+                    if p.id == lastID {
+                        // 最新节点：主题色实心
+                        PointMark(
+                            x: .value("时间", p.date),
+                            y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
+                        )
+                        .foregroundStyle(s.type.color)
+                        .symbolSize(34)
+                    } else {
+                        // 历史节点：外圈（灰色）
+                        PointMark(
+                            x: .value("时间", p.date),
+                            y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
+                        )
+                        .foregroundStyle(.gray)
+                        .symbolSize(32)
+                        // 内圈（挖空，使用卡片背景色实现空心）
+                        PointMark(
+                            x: .value("时间", p.date),
+                            y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
+                        )
+                        .foregroundStyle(Color(.secondarySystemGroupedBackground))
+                        .symbolSize(16)
+                    }
+                }
+            }
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
+        .chartPlotStyle { plotArea in
+            // 给绘图区增加内边距并裁剪，避免线条/节点越界
+            plotArea
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .clipped()
+        }
         .frame(width: 86, height: 50)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.secondary.opacity(0.30), lineWidth: 1)
-        )
         .allowsHitTesting(false)
     }
 }
