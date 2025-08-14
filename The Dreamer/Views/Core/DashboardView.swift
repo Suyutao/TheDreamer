@@ -13,7 +13,7 @@ import SwiftUI
 import SwiftData
 
 /// DashboardView 是应用的摘要页，用于展示用户的学习数据可视化图表。
-struct DashboardView: View {
+struct Database: View {
     @Environment(\.modelContext) private var modelContext
     
     // 查询所有科目，按orderIndex排序
@@ -156,5 +156,5 @@ struct DashboardView: View {
 }
 
 #Preview {
-    DashboardView()
+    Database()
 }

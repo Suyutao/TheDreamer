@@ -29,7 +29,7 @@ struct MainTabView: View {
     
     var body: some View {
         TabView {
-            DashboardView()
+            Database()
                 .tabItem {
                     Label("摘要", systemImage: "chart.bar.doc.horizontal")
                 }
