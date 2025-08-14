@@ -107,9 +107,9 @@ private struct SubjectScoreMiniChart: View {
                         x: .value("时间", p.date),
                         y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
                     )
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(.gray.tertiary)
                     .lineStyle(StrokeStyle(
-                        lineWidth: 2.5,
+                        lineWidth: 2,
                         dash: s.type.isDashed ? [3, 2] : []
                     ))
                     .interpolationMethod(.catmullRom)
@@ -135,15 +135,15 @@ private struct SubjectScoreMiniChart: View {
                             x: .value("时间", p.date),
                             y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
                         )
-                        .foregroundStyle(.gray)
-                        .symbolSize(32)
+                        .foregroundStyle(.gray.tertiary)
+                        .symbolSize(40)
                         // 内圈（挖空，使用卡片背景色实现空心）
                         PointMark(
                             x: .value("时间", p.date),
                             y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
                         )
                         .foregroundStyle(Color(.secondarySystemGroupedBackground))
-                        .symbolSize(16)
+                        .symbolSize(10)
                     }
                 }
             }
