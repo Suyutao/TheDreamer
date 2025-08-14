@@ -2,7 +2,7 @@
 
 本项目使用了来自 Apple Inc. 示例代码的组件。  
 原始代码 © 2024 Apple Inc.，在以下许可条款下使用：  
-详情请参阅 [`LICENSE.txt`](<ThirdParty/Apple Inc./CreatingADataVisualizationDashboardWithSwiftCharts/LICENSE.txt>)。
+详情请参阅 [`LICENSE.txt`](<ThirdParty/Apple Inc/CreatingADataVisualizationDashboardWithSwiftCharts/LICENSE.txt>)。
 
 ### AI 开发工具
 
