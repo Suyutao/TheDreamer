@@ -68,6 +68,12 @@ final class Subject {
     // [V22] 数字越小，排在越前面。
     var orderIndex: Int = 0
     
+    /// 科目描述信息
+    var subjectDescription: String = ""
+    
+    /// 是否在摘要中置顶显示
+    var pinned: Bool = false
+    
     // MARK: - 时间戳字段（架构增强）
     /// 数据创建时间戳
     var createdAt: Date?
@@ -138,10 +144,12 @@ final class Subject {
         }
     }
     
-    init(name: String, totalScore: Double, orderIndex: Int = 0) {
+    init(name: String, totalScore: Double, orderIndex: Int = 0, subjectDescription: String = "", pinned: Bool = false) {
         self.name = name
         self.totalScore = totalScore
         self.orderIndex = orderIndex
+        self.subjectDescription = subjectDescription
+        self.pinned = pinned
         
         // 自动设置时间戳
         let now = Date()

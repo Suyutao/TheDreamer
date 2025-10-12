@@ -20,10 +20,14 @@ struct SubjectDetailView: View {
     @State private var showingAddDataSheet = false
     @State private var addableDataType: AddableDataType? = nil
     
+    // 新增：本地状态 - 时间范围分段
+    @State private var selectedRange: TimeRangeSelector.TimeRange = .month
+    
     init(subject: Subject) {
         self.subjectID = subject.persistentModelID
     }
     
+    // MARK: - Helper
     /// 获取指定科目的SF Symbol图标
     private func getSubjectIcon(for subject: Subject) -> String {
         switch subject.name {
@@ -55,116 +59,169 @@ struct SubjectDetailView: View {
         subject.exams.sorted { $0.date > $1.date }.first
     }
     
+    // 根据分段选择计算图表的数据点
+    private func chartDataPoints(for subject: Subject) -> [ChartDataPoint] {
+        let range = selectedRange.dateRange
+        return subject.getScoreDataPoints(in: range)
+    }
+    
+    // MARK: - Body
     var body: some View {
         Group {
             if let subject = modelContext.model(for: subjectID) as? Subject {
-                List {
-                    Section {
-                        // 科目成绩图表卡片
-                        if let latestExam = getLatestExam(for: subject) {
-                            let series: [SubjectScoreCard.Series] = [
-                                .init(name: subject.name, type: .myScore, dataPoints: subject.getScoreDataPoints())
-                            ]
-                            SubjectScoreCard(
-                                subjectName: subject.name,
-                                scoreText: String(Int(latestExam.score)),
-                                date: latestExam.date,
-                                iconSystemName: getSubjectIcon(for: subject),
-                                miniSeries: series
-                            )
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                        } else {
-                            // 如果没有考试数据，显示空状态卡片
-                            VStack(spacing: 12) {
-                                Image(systemName: "chart.line.uptrend.xyaxis")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.gray)
-                                Text("暂无成绩数据")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                                Text("添加考试记录后，这里将显示成绩趋势图")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .multilineTextAlignment(.center)
+                ScrollView {
+                    VStack(spacing: 12) {
+                        // 顶部工具条 + 标题
+                        HStack {
+                            Button(action: { dismiss() }) {
+                                Image(systemName: "chevron.left")
+                                    .foregroundColor(.primary)
+                                    .padding(8)
+                                    .background(Color(.systemGray6), in: Circle())
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 40)
-                            .background(Color(.systemBackground))
-                            .cornerRadius(20)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color(.systemGray4), lineWidth: 1)
-                            )
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                        }
-                    }
-                    
-                    Section {
-                        NavigationLink(destination: SubjectDataView(subject: subject)) {
-                            HStack {
-                                Image(systemName: "chart.bar.fill")
-                                    .foregroundColor(.blue)
-                                    .frame(width: 24, height: 24)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("所有数据")
-                                        .font(.headline)
-                                    Text("查看该科目的所有考试记录")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
+                            Spacer()
+                            Text(subject.name)
+                                .font(.headline)
+                            Spacer()
+                            Button(action: {
+                                addableDataType = .exam
+                                showingAddDataSheet = true
+                            }) {
+                                Image(systemName: "plus")
+                                    .foregroundColor(.primary)
+                                    .padding(8)
+                                    .background(Color(.systemGray6), in: Circle())
                             }
-                            .padding(.vertical, 4)
                         }
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                         
-                        Button(action: {
-                            showingEditSheet = true
-                        }) {
-                            HStack {
-                                Image(systemName: "pencil")
-                                    .foregroundColor(.orange)
-                                    .frame(width: 24, height: 24)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("编辑科目")
-                                        .font(.headline)
-                                    Text("修改科目名称和满分")
-                                        .font(.caption)
+                        // 分段控制器
+                        HStack {
+                            TimeRangeSelector(selectedRange: $selectedRange)
+                        }
+                        .padding(.horizontal)
+                        
+                        // 白色图表容器
+                        VStack(alignment: .leading, spacing: 12) {
+                            // 图表：当前仅放置真实折线图，若无数据则显示空态
+                            let points = chartDataPoints(for: subject)
+                            if points.isEmpty {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white)
+                                    Text("暂无数据")
                                         .foregroundColor(.secondary)
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
+                                .frame(height: 220)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                            } else {
+                                VStack(spacing: 0) {
+                                    LineChartView(
+                                        dataPoints: points,
+                                        selectedSubject: subject.name,
+                                        dateRange: selectedRange.dateRange,
+                                        visibleLines: [.myScore],
+                                        chartStyle: .smooth,
+                                        showYAxisAsPercentage: false
+                                    )
+                                }
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
                             }
-                            .padding(.vertical, 4)
                         }
-                        .foregroundColor(.primary)
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                        
+                        // 灰色分组卡片：描述
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("[\(subject.name)]")
+                                .font(.headline).bold()
+                            Text(subject.subjectDescription.isEmpty ? "[占位文本]Lorem ipsum dolor sit amet, Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam" : subject.subjectDescription)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                                .padding(12)
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal)
+                        
+                        // 选项卡片
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("选项")
+                                .font(.headline)
+                            Button {
+                                subject.pinned.toggle()
+                                subject.markAsUpdated()
+                                try? modelContext.save()
+                            } label: {
+                                HStack {
+                                    Text("在摘要中置顶")
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    if subject.pinned {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 12)
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal)
+                        
+                        // 底部列表：显示所有数据 / 编辑科目
+                        VStack(spacing: 8) {
+                            NavigationLink(destination: SubjectDataView(subject: subject)) {
+                                HStack {
+                                    Text("显示所有数据")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding()
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            Button(action: { showingEditSheet = true }) {
+                                HStack {
+                                    Text("编辑科目")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding()
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .foregroundColor(.primary)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 16)
                     }
                 }
-                .navigationTitle(subject.name)
-                .navigationBarTitleDisplayMode(.large)
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: {
-                            addableDataType = .exam
-                            showingAddDataSheet = true
-                        }) {
-                            Image(systemName: "plus")
-                        }
-                    }
-                }
+                .navigationBarHidden(true)
                 // 编辑科目的sheet
                 .sheet(isPresented: $showingEditSheet) {
                     SubjectEditView(subject: subject) { name, totalScore, editedSubject in
                         if let editedSubject = editedSubject {
                             editedSubject.name = name
                             editedSubject.totalScore = totalScore
-                            // 更新时间戳
                             editedSubject.markAsUpdated()
                             try? modelContext.save()
                         }
@@ -185,10 +242,7 @@ struct SubjectDetailView: View {
                     message: "该科目已被删除或不存在。"
                 )
                 .navigationTitle("科目详情")
-                .onAppear {
-                    // 如果科目不存在，自动返回上一级
-                    dismiss()
-                }
+                .onAppear { dismiss() }
             }
         }
     }

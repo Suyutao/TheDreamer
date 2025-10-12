@@ -55,6 +55,10 @@ struct SubjectEditView: View {
     /// 科目总分的绑定状态变量（文本形式）
     @State private var totalScoreText: String = ""
     
+    // 新增：描述与置顶
+    @State private var descriptionText: String = ""
+    @State private var pinned: Bool = false
+    
     // MARK: - Computed Properties
     
     /// 计算保存按钮是否禁用
@@ -102,6 +106,21 @@ struct SubjectEditView: View {
                         .keyboardType(.decimalPad)
                         #endif
                 }
+                
+                // 新增：描述
+                Section(header: Text("科目描述"), footer: Text("用于在详情页摘要区域展示，可留空")) {
+                    TextEditor(text: $descriptionText)
+                        .frame(minHeight: 100)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separator), lineWidth: 0.5)
+                        )
+                }
+                
+                // 新增：选项
+                Section(header: Text("选项")) {
+                    Toggle("在摘要中置顶", isOn: $pinned)
+                }
             }
             .navigationTitle(navigationTitleString)
             #if os(iOS)
@@ -129,6 +148,8 @@ struct SubjectEditView: View {
         if let subject = subject {
             name = subject.name
             totalScoreText = "\(subject.totalScore)"
+            descriptionText = subject.subjectDescription
+            pinned = subject.pinned
         }
     }
     
@@ -138,7 +159,17 @@ struct SubjectEditView: View {
         // [V26] 改为使用 Double 进行转换，支持诸如 "150.0" 的有效输入
         guard let scoreValue = Double(totalScoreText) else { return }
         
+        // 先交给父视图处理名称和满分（兼容已有调用点）
         onSave(name.trimmingCharacters(in: .whitespaces), scoreValue, subject)
+        
+        // 本地直接落盘描述与置顶（仅编辑模式）
+        if let subject = subject {
+            subject.subjectDescription = descriptionText.trimmingCharacters(in: .whitespacesAndNewlines)
+            subject.pinned = pinned
+            subject.markAsUpdated()
+            try? modelContext.save()
+        }
+        
         dismiss()
     }
 }

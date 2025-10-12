@@ -71,7 +71,9 @@ private struct TimeSeries: View {
                 TimeSeriesBars(yLabel: "Installed capacity (gigawatts)", metric: \.capacityGW)
             }
         case .heatmap:
-            Heatmap()
+            // Heatmap() // Temporarily disabled
+            Text("Heatmap temporarily disabled")
+                .foregroundColor(.secondary)
         }
     }
 }
