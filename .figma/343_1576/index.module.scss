@@ -1,0 +1,51 @@
+* {
+  box-sizing: border-box;
+}
+
+.component {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-radius: 26px;
+  background: #ffffff;
+  padding: 12px 14px;
+  width: 370px;
+  height: 65px;
+  overflow: hidden;
+
+  .frame9 {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    column-gap: 5px;
+
+    .a {
+      flex-shrink: 0;
+      line-height: 28px;
+      letter-spacing: -0.26px;
+      color: #000000;
+      font-family: "SF Pro", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+      font-size: 22px;
+    }
+
+    .title {
+      flex-shrink: 0;
+      line-height: 41px;
+      letter-spacing: 0.4px;
+      color: var(--Labels---Vibrant-Primary, #333333);
+      font-family: "SF Pro", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+    }
+  }
+
+  .subtitle {
+    flex-shrink: 0;
+    line-height: 20px;
+    letter-spacing: -0.25px;
+    color: var(--Labels---Vibrant-Secondary, #999999);
+    font-family: "SF Pro", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+  }
+}
