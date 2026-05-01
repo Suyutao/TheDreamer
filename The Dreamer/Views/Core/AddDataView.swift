@@ -61,6 +61,10 @@ struct AddDataView: View {
     
     // 预选科目：用于从科目详情页面跳转时预先选择科目
     let preselectedSubject: Subject?
+
+    private var isSubjectLocked: Bool {
+        preselectedSubject != nil || isEditingMode
+    }
     
     // UI State（用户界面状态变量）
     // @State是属性包装器，用于管理视图的状态
@@ -309,11 +313,11 @@ struct AddDataView: View {
                             .frame(width: 24)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("日期")
+                            Text("时间")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
 
-                            DatePicker("", selection: $date, displayedComponents: .date)
+                            DatePicker("", selection: $date, displayedComponents: [.date, .hourAndMinute])
                                 .labelsHidden()
                         }
 
@@ -324,8 +328,8 @@ struct AddDataView: View {
 
             // 科目选择
             InfoCard {
-                if isEditingMode {
-                    // 编辑模式下显示当前科目
+                if isSubjectLocked {
+                    // 编辑模式或从科目详情进入时，锁定当前科目，避免误记到其他科目
                     HStack {
                         Image(systemName: "book.fill")
                             .foregroundColor(.blue)
@@ -339,6 +343,12 @@ struct AddDataView: View {
                             Text(selectedSubject?.name ?? "未知科目")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
+
+                            if preselectedSubject != nil && !isEditingMode {
+                                Text("已锁定到当前科目")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                         }
 
                         Spacer()
@@ -475,11 +485,11 @@ struct AddDataView: View {
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("日期")
+                        Text("时间")
                             .font(.subheadline)
                             .fontWeight(.medium)
 
-                        DatePicker("", selection: $date, displayedComponents: .date)
+                        DatePicker("", selection: $date, displayedComponents: [.date, .hourAndMinute])
                             .labelsHidden()
                     }
 
@@ -555,7 +565,7 @@ struct AddDataView: View {
     private func resetForm() {
         examName = ""
         scoreText = ""
-        selectedSubject = nil
+        selectedSubject = preselectedSubject
         selectedPracticeCollection = nil
         selectedExamGroup = nil
         date = .now

@@ -97,6 +97,12 @@ Deliverables:
 - Ensure SubjectDetailView add-data flow stays locked to the selected subject.
 - Verify delete and undo flows still compile and behave consistently.
 
+Progress:
+
+- 2026-05-01: Updated About metadata to iOS 26/Xcode 26.
+- 2026-05-01: Added date and time selection to data entry.
+- 2026-05-01: Locked subject selection when adding data from a subject detail page.
+
 Acceptance:
 
 - Clean simulator build.
@@ -138,4 +144,3 @@ Acceptance:
 ## Near-Term Recommendation
 
 Start with Milestone A, then resume the existing Chart System V2 roadmap. The current codebase just regained a native, compilable baseline, so the next best move is to protect that baseline while making one student workflow excellent at a time.
-
