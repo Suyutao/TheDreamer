@@ -12,7 +12,7 @@
     "targetSDK": "iOS 26",
     "architecturePattern": "MV (Model-View)",
     "codeOrganization": "严格按职责划分目录 (Models/, Views/, Components/, Utils/)",
-    "buildTest": "xcodebuild -project The Dreamer.xcodeproj -scheme The Dreamer -destination platform=iOS Simulator,name=iPhone 16 Pro clean build"
+    "buildTest": "xcodebuild -project The Dreamer.xcodeproj -scheme The Dreamer -destination platform=iOS Simulator,name=iPhone 17 Pro clean build"
   },
   "phases": [
     {

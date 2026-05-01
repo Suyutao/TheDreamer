@@ -1,4 +1,11 @@
-// AddDataView.swift (V18 Final Corrected Version)
+//
+//  AddDataView Legacy.swift
+//  The Dreamer
+//
+//  Created by 苏宇韬 on 10/12/25.
+//
+
+
 // 这个文件定义了一个用于添加考试或练习数据的界面
 
 // 功能简介：
@@ -34,7 +41,7 @@ import SwiftData
 // struct是Swift中的一种数据结构，用于封装相关的属性和功能
 // AddDataView遵循View协议，表示它是一个界面组件
 // 定义一个结构体，表示添加数据的视图界面
-struct AddDataView: View {
+struct AddDataViewLegacy: View {
     
     // MARK: - Properties & State
     // 这个标记用于在代码中创建视觉分隔，便于阅读
@@ -117,37 +124,63 @@ struct AddDataView: View {
     // 定义视图的主要内容
     // body是View协议要求实现的属性，定义了界面的具体内容
     var body: some View {
-        NavigationStack {
+        // 创建一个导航视图，用于管理视图间的导航
+        // NavigationView提供导航栏和返回按钮等功能
+        NavigationView {
+            // 创建一个表单，用于组织输入控件
+            // Form用于创建表单界面，自动处理滚动和分组
             Form {
+                // [V23] 使用新的可复用组件
+                // 显示表单头部，根据数据类型显示不同的图标和标题
+                // FormHeader是在CommonComponents.swift中定义的组件
+                FormHeader(
+                    // iconName根据数据类型选择不同的图标
+                    // dataType == .exam ? "doc.text.fill" : "pencil.and.ruler.fill"是三元运算符
+                    // 如果dataType等于.exam则显示"doc.text.fill"图标，否则显示"pencil.and.ruler.fill"图标
+                    iconName: dataType == .exam ? "doc.text.fill" : "pencil.and.ruler.fill",
+                    // title使用navigationTitle计算属性的值
+                    title: navigationTitle,
+                    // iconColor设置图标颜色为系统的强调色
+                    iconColor: .accentColor
+                )
+                
                 // 根据编辑模式或数据类型显示不同的表单内容
                 if isEditingMode {
                     // 编辑模式下只显示考试表单
-                    examCardView
+                    examForm
                 } else if let type = dataType {
-                    // 数据类型选择器（仅在非编辑模式下显示）
-                    dataTypeSelectorView
-
                     switch type {
                     case .exam:
                         // 如果是考试，则显示考试表单
-                        examCardView
+                        // examForm是在下面定义的计算属性
+                        examForm
                     case .practice:
                         // 如果是练习，则显示练习表单
-                        practiceCardView
+                        // practiceForm是在下面定义的计算属性
+                        practiceForm
                     }
                 } else {
-                    dataTypeSelectionView
+                    Text("请选择数据类型")
                 }
-
-                // 底部操作按钮
-                actionButtonsView
             }
-            .navigationTitle(navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
+            // 添加工具栏按钮
+            // toolbar用于在导航栏上添加额外的按钮
             .toolbar {
+                // 在右上角添加保存按钮
+                // ToolbarItem定义工具栏上的一个项目
+                // placement: .primaryAction表示放置在右上角
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: { saveData() }) {
+                        Label("保存", systemImage: "checkmark")
+                    }
+                    .disabled(isSaveButtonDisabled)
+                }
                 // 在左侧添加取消按钮
+                // placement: .cancellationAction表示放置在左侧取消位置
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(action: { dismiss() }) {
+                        Label("取消", systemImage: "xmark")
+                    }
                 }
             }
         }
@@ -182,383 +215,144 @@ struct AddDataView: View {
   
     // MARK: - Encapsulated View Components
     // 定义封装的视图组件
-
-    /// 数据类型选择视图
-    private var dataTypeSelectionView: some View {
-        Section("选择记录类型") {
-            HStack(spacing: 12) {
-                // 考试类型卡片
-                DataTypeCard(
-                    title: "考试",
-                    subtitle: "正式考试记录",
-                    icon: "doc.text.fill",
-                    isSelected: dataType == .exam,
-                    color: .blue
-                ) {
-                    dataType = .exam
-                }
-
-                // 练习类型卡片
-                DataTypeCard(
-                    title: "练习",
-                    subtitle: "日常练习记录",
-                    icon: "pencil.and.ruler.fill",
-                    isSelected: dataType == .practice,
-                    color: .green
-                ) {
-                    dataType = .practice
-                }
-            }
-        }
-    }
-
-    /// 数据类型选择器视图（已选择后显示）
-    private var dataTypeSelectorView: some View {
-        Section {
+    
+    // 考试表单的视图组件
+    // private表示这个属性只能在当前结构体内访问
+    // var表示这是一个计算属性（每次访问时都会重新计算）
+    // some View表示返回一个遵循View协议的视图
+    private var examForm: some View {
+        // 创建一个表单区域，标题为"考试信息"
+        // Section用于在Form中创建一个带标题的区域
+        Section(header: Text("考试信息")) {
+            // 考试组选择（添加模式和编辑模式都显示）
             Button(action: {
-                dataType = nil
+                showingExamGroupSelection = true
             }) {
-                Label(dataType == .exam ? "考试记录" : "练习记录", systemImage: "arrow.left")
-            }
-        }
-    }
-
-    /// 考试表单卡片视图
-    private var examCardView: some View {
-        Section("考试信息") {
-            // 考试组选择
-            InfoCard {
-                Button(action: {
-                    showingExamGroupSelection = true
-                }) {
-                    HStack {
-                        Image(systemName: "folder.fill")
-                            .foregroundColor(.blue)
-                            .frame(width: 24)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("考试组")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-
-                            Text(selectedExamGroup?.name ?? "单科考试")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                }
-                .foregroundColor(.primary)
-            }
-
-            // 考试名称
-            InfoCard {
-                if selectedExamGroup != nil {
-                    // 大考模式：显示自动生成的名称
-                    HStack {
-                        Image(systemName: "text.alignleft")
-                            .foregroundColor(.blue)
-                            .frame(width: 24)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("考试名称")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-
-                            Text(examName.isEmpty ? "请先选择科目" : examName)
-                                .font(.subheadline)
-                                .foregroundColor(examName.isEmpty ? .secondary : .primary)
-                        }
-
-                        Spacer()
-                    }
-                } else {
-                    // 单科考试模式：允许手动输入
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "text.alignleft")
-                                .foregroundColor(.blue)
-                                .frame(width: 24)
-
-                            Text("考试名称")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-
-                            Spacer()
-                        }
-
-                        TextField("请输入考试名称", text: $examName)
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .padding(.vertical, 8)
-                    }
-                }
-            }
-
-            // 日期选择器（仅在单科考试时显示）
-            if selectedExamGroup == nil {
-                InfoCard {
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.blue)
-                            .frame(width: 24)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("日期")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-
-                            DatePicker("", selection: $date, displayedComponents: .date)
-                                .labelsHidden()
-                        }
-
-                        Spacer()
-                    }
-                }
-            }
-
-            // 科目选择
-            InfoCard {
-                if isEditingMode {
-                    // 编辑模式下显示当前科目
-                    HStack {
-                        Image(systemName: "book.fill")
-                            .foregroundColor(.blue)
-                            .frame(width: 24)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("科目")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-
-                            Text(selectedSubject?.name ?? "未知科目")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Spacer()
-                    }
-                } else {
-                    // 添加模式下的科目选择
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "book.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 24)
-
-                            Text("科目")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-
-                            Spacer()
-                        }
-
-                        Menu {
-                            ForEach(subjects) { subject in
-                                Button(subject.name) {
-                                    selectedSubject = subject
-                                    // 当科目选择改变时，如果是大考模式，自动更新考试名称
-                                    if selectedExamGroup != nil {
-                                        examName = generateExamName(examGroup: selectedExamGroup, subject: subject)
-                                    }
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Text(selectedSubject?.name ?? "请选择科目")
-                                    .foregroundColor(selectedSubject == nil ? .secondary : .primary)
-
-                                Spacer()
-
-                                Image(systemName: "chevron.down")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.vertical, 8)
-                        }
-                    }
-                }
-            }
-
-            // 成绩输入
-            InfoCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.blue)
-                            .frame(width: 24)
-
-                        Text("成绩")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        if let subject = selectedSubject {
-                            Text("（满分\(Int(subject.totalScore))）")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Spacer()
-                    }
-
-                    TextField("请输入成绩", text: $scoreText)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .keyboardType(.decimalPad)
-                        .padding(.vertical, 8)
-                        .onChange(of: scoreText) { oldValue, newValue in
-                            // 过滤非数字字符（保留小数点）
-                            let filtered = newValue.filter { $0.isNumber || $0 == "." }
-                            if filtered != newValue {
-                                scoreText = filtered
-                            }
-                            // 确保只有一个小数点
-                            let components = filtered.components(separatedBy: ".")
-                            if components.count > 2 {
-                                scoreText = components[0] + "." + components[1]
-                            }
-                        }
-                }
-            }
-        }
-    }
-
-    /// 练习表单卡片视图
-    private var practiceCardView: some View {
-        Section("练习信息") {
-            // 练习类别选择
-            InfoCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "folder.fill")
-                            .foregroundColor(.green)
-                            .frame(width: 24)
-
-                        Text("所属类别")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        Spacer()
-                    }
-
-                    Menu {
-                        ForEach(practiceCollections) { collection in
-                            Button(collection.name) {
-                                selectedPracticeCollection = collection
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedPracticeCollection?.name ?? "请选择类别")
-                                .foregroundColor(selectedPracticeCollection == nil ? .secondary : .primary)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.vertical, 8)
-                    }
-                }
-            }
-
-            // 日期选择器
-            InfoCard {
                 HStack {
-                    Image(systemName: "calendar")
-                        .foregroundColor(.green)
-                        .frame(width: 24)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("日期")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        DatePicker("", selection: $date, displayedComponents: .date)
-                            .labelsHidden()
-                    }
-
+                    Text("考试组")
                     Spacer()
+                    Text(selectedExamGroup?.name ?? "单科考试")
+                        .foregroundColor(.secondary)
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
                 }
             }
-
-            // 成绩输入
-            InfoCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.green)
-                            .frame(width: 24)
-
-                        Text("成绩")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        Spacer()
-                    }
-
-                    TextField("请输入成绩", text: $scoreText)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .keyboardType(.decimalPad)
-                        .padding(.vertical, 8)
-                        .onChange(of: scoreText) { oldValue, newValue in
-                            // 过滤非数字字符（保留小数点）
-                            let filtered = newValue.filter { $0.isNumber || $0 == "." }
-                            if filtered != newValue {
-                                scoreText = filtered
-                            }
-                            // 确保只有一个小数点
-                            let components = filtered.components(separatedBy: ".")
-                            if components.count > 2 {
-                                scoreText = components[0] + "." + components[1]
-                            }
-                        }
-                }
-            }
-        }
-    }
-
-    /// 底部操作按钮视图
-    private var actionButtonsView: some View {
-        Section {
-            Button(action: { saveData() }) {
+            .foregroundColor(.primary)
+            
+            // 考试名称输入：大考时自动生成，单科考试时手动输入
+            if selectedExamGroup != nil {
+                // 大考模式：显示自动生成的名称，禁用手动输入
                 HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                    Text("保存记录")
-                        .fontWeight(.semibold)
+                    Text("考试名称")
+                    Spacer()
+                    Text(examName.isEmpty ? "请先选择科目" : examName)
+                        .foregroundColor(examName.isEmpty ? .secondary : .primary)
                 }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
+            } else {
+                // 单科考试模式：允许手动输入
+                TextField("考试名称", text: $examName)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(isSaveButtonDisabled)
-
-            if !isEditingMode && dataType != nil {
-                Button("重置表单") {
-                    resetForm()
+            
+            // 日期选择器：只有在单科考试时才显示
+            if selectedExamGroup == nil {
+                // 创建日期选择器，用于选择考试日期
+                // DatePicker用于创建日期选择器
+                // "日期"是标签文本
+                // selection: $date绑定到date状态变量
+                // displayedComponents: .date表示只显示日期部分
+                DatePicker("日期", selection: $date, displayedComponents: .date)
+            }
+            
+            // 科目选择：编辑模式下显示为只读，添加模式下可选择
+            if isEditingMode {
+                // 编辑模式下显示当前科目，不可更改
+                HStack {
+                    Text("科目")
+                    Spacer()
+                    Text(selectedSubject?.name ?? "未知科目")
+                        .foregroundColor(.secondary)
                 }
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            } else {
+                // 添加模式下的科目选择器
+                Picker("科目", selection: $selectedSubject) {
+                    // 默认选项，提示用户选择科目
+                    Text("请选择科目").tag(nil as Subject?)
+                    // 遍历所有科目，为每个科目创建一个选项
+                    ForEach(subjects) { subject in
+                        // 显示科目名称，并将其与selectedSubject关联
+                        Text(subject.name).tag(subject as Subject?)
+                    }
+                }
+                .onChange(of: selectedSubject) { oldValue, newValue in
+                    // 当科目选择改变时，如果是大考模式，自动更新考试名称
+                    if selectedExamGroup != nil {
+                        examName = generateExamName(examGroup: selectedExamGroup, subject: newValue)
+                    }
+                }
             }
+            
+            // 创建文本输入框，用于输入成绩
+            TextField(selectedSubject != nil ? "成绩（满分\(Int(selectedSubject!.totalScore))）" : "成绩", text: $scoreText)
+                // 设置键盘类型为数字键盘
+                // .keyboardType(.decimalPad)设置键盘类型为带小数点的数字键盘
+                #if os(iOS)
+                .keyboardType(.decimalPad)
+                #endif
+                // 添加输入验证和格式化
+                .onChange(of: scoreText) { oldValue, newValue in
+                    // 过滤非数字字符（保留小数点）
+                    let filtered = newValue.filter { $0.isNumber || $0 == "." }
+                    if filtered != newValue {
+                        scoreText = filtered
+                    }
+                    // 确保只有一个小数点
+                    let components = filtered.components(separatedBy: ".")
+                    if components.count > 2 {
+                        scoreText = components[0] + "." + components[1]
+                    }
+                }
         }
-        .padding(.bottom, 32)
     }
-
-    // MARK: - Helper Functions
-
-    /// 重置表单
-    private func resetForm() {
-        examName = ""
-        scoreText = ""
-        selectedSubject = nil
-        selectedPracticeCollection = nil
-        selectedExamGroup = nil
-        date = .now
+    
+    // 练习表单的视图组件
+    private var practiceForm: some View {
+        // 创建一个表单区域，标题为"练习信息"
+        Section(header: Text("练习信息")) {
+            // 创建下拉选择器，用于选择练习类别
+            Picker("所属类别", selection: $selectedPracticeCollection) {
+                // 默认选项，提示用户选择类别
+                Text("请选择类别").tag(nil as PracticeCollection?)
+                // 遍历所有练习类别，为每个类别创建一个选项
+                ForEach(practiceCollections) { collection in
+                    // 显示类别名称，并将其与selectedPracticeCollection关联
+                    Text(collection.name).tag(collection as PracticeCollection?)
+                }
+            }
+            
+            // 创建日期选择器，用于选择练习日期
+            DatePicker("日期", selection: $date, displayedComponents: .date)
+            
+            // 创建文本输入框，用于输入成绩
+            TextField("成绩", text: $scoreText)
+                // 设置键盘类型为数字键盘
+                #if os(iOS)
+                .keyboardType(.decimalPad)
+                #endif
+                // 添加输入验证和格式化
+                .onChange(of: scoreText) { oldValue, newValue in
+                    // 过滤非数字字符（保留小数点）
+                    let filtered = newValue.filter { $0.isNumber || $0 == "." }
+                    if filtered != newValue {
+                        scoreText = filtered
+                    }
+                    // 确保只有一个小数点
+                    let components = filtered.components(separatedBy: ".")
+                    if components.count > 2 {
+                        scoreText = components[0] + "." + components[1]
+                    }
+                }
+        }
     }
     
     // MARK: - Computed Properties & Functions
@@ -746,3 +540,4 @@ struct AddDataView: View {
     return AddDataView(dataType: Binding.constant(.exam), examToEdit: exam, preselectedSubject: nil)
         .modelContainer(container)
 }
+

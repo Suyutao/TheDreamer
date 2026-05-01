@@ -31,12 +31,12 @@ struct MainTabView: View {
         TabView {
             Database()
                 .tabItem {
-                    Label("摘要", systemImage: "chart.bar.doc.horizontal")
+                    Label("概览", systemImage: "chart.bar.doc.horizontal")
                 }
-            
-            AnalysisView()
+
+            DashboardAnalysisView()
                 .tabItem {
-                    Label("数据库", systemImage: "cylinder.split.1x2")
+                    Label("分析", systemImage: "chart.line.uptrend.xyaxis")
                 }
         }
         .onAppear {
