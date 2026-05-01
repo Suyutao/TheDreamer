@@ -115,8 +115,8 @@ struct AboutView: View {
         
         技术栈：
         • SwiftUI + SwiftData + Swift Charts
-        • iOS 18.0+
-        • Xcode 16+
+        • iOS 26+
+        • Xcode 26+
         
         核心功能：
         • 考试成绩管理
@@ -198,7 +198,7 @@ struct AboutView: View {
         • 确保代码编译时没有警告
         
         开发设置：
-        • 要求：Xcode 16+，iOS 18+ SDK
+        • 要求：Xcode 26+，iOS 26+ SDK
         • 技术栈：SwiftUI，SwiftData，Swift Charts
         • 架构：MV（Model-View）模式
         
