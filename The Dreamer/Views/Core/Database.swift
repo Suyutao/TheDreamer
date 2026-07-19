@@ -186,7 +186,7 @@ struct AnalysisView: View {
                                             .foregroundColor(.secondary)
                                             .padding(.horizontal, 8)
                                             .padding(.vertical, 2)
-                                            .background(Color(.systemGray5))
+                                            .background(Color.systemGray5Color)
                                             .clipShape(Capsule())
                                     }
                                 }
@@ -221,7 +221,7 @@ struct AnalysisView: View {
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 2)
-                                    .background(Color(.systemGray5))
+                                    .background(Color.systemGray5Color)
                                     .clipShape(Capsule())
                             }
                         }
@@ -277,7 +277,7 @@ struct AnalysisView: View {
             // 添加工具栏按钮
             .toolbar {
                 // 仅保留左上角设置按钮
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .navigation) {
                     Button(action: { showingSettingsSheet = true }) {
                         Image(systemName: "gear")
                     }
@@ -452,6 +452,11 @@ struct AllDataListView: View {
         Array(Set(exams.compactMap { $0.subject }))
             .sorted { $0.name < $1.name }
     }
+
+    // 获取指定科目的所有考试
+    private func examsForSubject(_ subject: Subject) -> [Exam] {
+        exams.filter { $0.subject?.id == subject.id }
+    }
     
     var body: some View {
         // ZStack允许视图堆叠显示
@@ -472,8 +477,8 @@ struct AllDataListView: View {
                         ForEach(sortedSubjects) { subject in
                             Section(header: Text(subject.name)) {
                                 // 获取该科目的所有考试
-                                let subjectExams = exams.filter { $0.subject?.id == subject.id }
-                                 
+                                let subjectExams = examsForSubject(subject)
+
                                 ForEach(subjectExams) { exam in
                                     if isEditMode {
                                         HStack {
@@ -551,13 +556,15 @@ struct AllDataListView: View {
         // 导航栏标题设置
         .navigationTitle("所有数据")
         // 编辑模式下隐藏底部标签栏
+        #if os(iOS)
         .toolbar(isEditMode ? .hidden : .visible, for: .tabBar)
+        #endif
         // 添加工具栏按钮
         .toolbar {
             // 顶部工具栏
             if isEditMode {
                 // 左上角：全选按钮
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .navigation) {
                     Button("全选") {
                         if selectedExams.count == exams.count {
                             selectedExams.removeAll()
@@ -618,7 +625,7 @@ struct AllDataListView: View {
             
             // 底部工具栏（编辑模式）
             if isEditMode {
-                ToolbarItemGroup(placement: .bottomBar) {
+                ToolbarItemGroup(placement: editToolbarPlacement) {
                     Button {
                         showingExamGroupSelection = true
                     } label: {
@@ -698,27 +705,14 @@ struct AllDataListView: View {
             )
             .animation(.easeInOut(duration: 0.3), value: showingUndoToast)
         }
-        .overlay(alignment: .top) {
-            if showingGestureHint {
-                GestureHintView()
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .animation(.easeInOut(duration: 0.3), value: showingGestureHint)
-            }
-        }
-        .threeFingerTap {
-            handleThreeFingerTap()
-        }
-        .twoFingerMultiSelect(
-            onStart: {
-                handleMultiSelectStart()
-            },
-            onMove: { location in
-                handleMultiSelectMove(at: location)
-            },
-            onEnd: {
-                handleMultiSelectEnd()
-            }
-        )
+    }
+
+    private var editToolbarPlacement: ToolbarItemPlacement {
+        #if os(iOS)
+        .bottomBar
+        #else
+        .secondaryAction
+        #endif
     }
     
     // MARK: - 私有方法

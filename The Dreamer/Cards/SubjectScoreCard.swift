@@ -88,7 +88,7 @@ struct SubjectScoreCard: View {
             }
         }
         .padding(16)
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.secondaryGroupedBackground)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 }
@@ -142,7 +142,7 @@ private struct SubjectScoreMiniChart: View {
                             x: .value("时间", p.date),
                             y: .value("分数", showYAxisAsPercentage ? p.scoreRate : p.score)
                         )
-                        .foregroundStyle(Color(.secondarySystemGroupedBackground))
+                        .foregroundStyle(Color.secondaryGroupedBackground)
                         .symbolSize(10)
                     }
                 }

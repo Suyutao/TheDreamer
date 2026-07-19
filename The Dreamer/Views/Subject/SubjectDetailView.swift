@@ -78,7 +78,9 @@ struct SubjectDetailView: View {
                     actionButtonsSection(subject: subject)
                 }
                 .navigationTitle(subject.name)
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: {

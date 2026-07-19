@@ -73,13 +73,16 @@ struct ManageSubjectsView: View {
     
     /// 状态变量，保存待保存的新科目信息（用于重名检查后的保存）。
     @State private var pendingSave: (name: String, score: Double, subject: Subject?)?
+    @State private var subjectsPendingDeletion: [Subject] = []
+    @State private var deletionWarningMessage = ""
+    @State private var showingDeletionConfirmation = false
     
     // MARK: - Computed Properties
     
     /// 视图的主体部分。
     var body: some View {
         // 使用NavigationView包装内容
-        NavigationView {
+        NavigationStack {
             // 使用ZStack实现层叠布局
             ZStack {
                 // 当科目列表为空时显示空状态视图
@@ -176,6 +179,17 @@ struct ManageSubjectsView: View {
             } message: {
                 Text(buildDuplicateAlertMessage())
             }
+            .alert("确认删除科目", isPresented: $showingDeletionConfirmation) {
+                Button("取消", role: .cancel) {
+                    subjectsPendingDeletion = []
+                }
+                Button("了解后果，确认删除", role: .destructive) {
+                    performSubjectDeletion(subjectsPendingDeletion)
+                    subjectsPendingDeletion = []
+                }
+            } message: {
+                Text(deletionWarningMessage)
+            }
             // 设置编辑模式环境值
             #if os(iOS)
             .environment(\.editMode, $editMode)
@@ -269,24 +283,9 @@ struct ManageSubjectsView: View {
             
             warningMessage += "此操作无法撤销，请确认是否继续？"
             
-            // 显示确认对话框
-            let alert = UIAlertController(
-                title: "确认删除科目",
-                message: warningMessage,
-                preferredStyle: .alert
-            )
-            
-            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
-            alert.addAction(UIAlertAction(title: "了解后果，确认删除", style: .destructive) { _ in
-                self.performSubjectDeletion(subjectsToDelete.map { $0.subject })
-            })
-            
-            // 获取当前的UIViewController来显示alert
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first,
-               let rootViewController = window.rootViewController {
-                rootViewController.present(alert, animated: true)
-            }
+            subjectsPendingDeletion = subjectsToDelete.map { $0.subject }
+            deletionWarningMessage = warningMessage
+            showingDeletionConfirmation = true
         } else {
             // 没有关联数据，直接删除
             performSubjectDeletion(subjectsToDelete.map { $0.subject })

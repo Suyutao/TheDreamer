@@ -83,7 +83,7 @@ struct Database: View {
             }
             .navigationTitle("科目概览")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .navigation) {
                     Button(action: { showingSettingsSheet = true }) {
                         Image(systemName: "gear")
                     }

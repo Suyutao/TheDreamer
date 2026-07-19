@@ -44,7 +44,7 @@ struct OnBoardingView: View {
     private let totalPages = 4
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // 顶部导航栏
                 topNavigationBar
@@ -67,12 +67,16 @@ struct OnBoardingView: View {
                     getStartedPage
                         .tag(3)
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                #if os(iOS)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                #endif
                 
                 // 底部控制区域
                 bottomControlArea
             }
-            .background(Color(.systemGroupedBackground))
+            .frame(maxWidth: 720)
+            .frame(maxWidth: .infinity)
+            .background(Color.groupedBackground)
         }
     }
     
@@ -209,7 +213,7 @@ struct OnBoardingView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            Image(systemName: "rocket.fill")
+            Image(systemName: "paperplane.fill")
                 .font(.system(size: 60))
                 .foregroundStyle(.purple.gradient)
             
@@ -226,49 +230,32 @@ struct OnBoardingView: View {
             
             VStack(spacing: 16) {
                 if isReviewMode {
-                    // 重新查看模式只显示完成按钮
                     Button(action: {
                         completeOnboarding()
                     }) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                            Text("完成查看")
-                        }
+                        Label("完成查看", systemImage: "checkmark")
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                 } else {
-                    // 首次启动模式显示两个选项
                     Button(action: {
                         completeOnboardingWithSampleData()
                     }) {
-                        HStack {
-                            Image(systemName: "sparkles")
-                            Text("添加示例数据")
-                        }
+                        Label("添加示例数据", systemImage: "sparkles")
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     
                     Button(action: {
                         completeOnboarding()
                     }) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("手动添加科目")
-                        }
+                        Label("手动添加科目", systemImage: "plus")
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.secondary.opacity(0.1))
-                        .foregroundColor(.primary)
-                        .cornerRadius(12)
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
             }
             .padding(.horizontal)

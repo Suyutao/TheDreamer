@@ -311,7 +311,7 @@ struct PieChartView: View {
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
                             Rectangle()
-                                .fill(Color(.systemGray5))
+                                .fill(Color.systemGray5Color)
                                 .frame(height: 8)
                                 .cornerRadius(4)
                             
@@ -391,7 +391,7 @@ struct PieChartView: View {
             .foregroundColor(.primary)
         }
         .padding(8)
-        .background(Color(.systemGray6))
+        .background(Color.systemGray6Color)
         .cornerRadius(6)
     }
     

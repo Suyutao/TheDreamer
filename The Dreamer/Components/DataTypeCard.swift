@@ -102,5 +102,5 @@ struct InfoCard<Content: View>: View {
         }
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(Color.groupedBackground)
 }

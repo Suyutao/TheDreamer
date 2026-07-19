@@ -75,9 +75,11 @@ struct FigmaCardsPreviewView: View {
                 }
                 .padding(.bottom)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.groupedBackground)
             .navigationTitle("Figma 卡片预览")
+            #if !os(visionOS)
             .navigationSubtitle("基于Figma设计文件28_2000和28_2838的SwiftUI实现")
+            #endif
         }
     }
 }

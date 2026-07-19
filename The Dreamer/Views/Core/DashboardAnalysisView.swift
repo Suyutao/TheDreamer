@@ -142,23 +142,21 @@ struct DashboardAnalysisView: View {
         let subjectData = getExamsBySubject()
 
         return Section {
-            HStack {
-                if !subjects.isEmpty {
-                    Picker("科目", selection: $selectedSubject) {
-                        Text("全部").tag(nil as Subject?)
-                        ForEach(subjects) { subject in
-                            Text(subject.name).tag(subject as Subject?)
-                        }
+            if !subjects.isEmpty {
+                Picker("科目", selection: $selectedSubject) {
+                    Text("全部").tag(nil as Subject?)
+                    ForEach(subjects) { subject in
+                        Text(subject.name).tag(subject as Subject?)
                     }
-                    .pickerStyle(.menu)
                 }
+                .pickerStyle(.menu)
             }
 
             if subjectData.isEmpty {
-                EmptyStateView(
-                    iconName: "chart.bar.doc.horizontal",
-                    title: "暂无数据",
-                    message: "当前时间范围内没有考试数据"
+                ContentUnavailableView(
+                    "暂无数据",
+                    systemImage: "chart.bar.doc.horizontal",
+                    description: Text("当前时间范围内没有考试数据")
                 )
             } else {
                 // 科目对比图表
@@ -182,10 +180,10 @@ struct DashboardAnalysisView: View {
 
         return Section("成绩趋势") {
             if filteredExams.isEmpty {
-                EmptyStateView(
-                    iconName: "line.chart.ascending",
-                    title: "暂无趋势数据",
-                    message: "需要至少2次考试记录才能显示趋势"
+                ContentUnavailableView(
+                    "暂无趋势数据",
+                    systemImage: "chart.line.uptrend.xyaxis",
+                    description: Text("需要至少2次考试记录才能显示趋势")
                 )
             } else {
                 ScoreTrendChart(exams: filteredExams)
@@ -242,7 +240,7 @@ struct DashboardAnalysisView: View {
                         .padding(.vertical, 8)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemGray6).opacity(0.3))
+                                .fill(Color.systemGray6Color.opacity(0.3))
                         )
                     }
 
@@ -329,7 +327,7 @@ struct SubjectRankingView: View {
                 .padding(.horizontal, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(.systemGray6).opacity(0.5))
+                        .fill(Color.systemGray6Color.opacity(0.5))
                 )
             }
         }

@@ -23,7 +23,8 @@ struct ClassRankingCard: View {
             // 顶部栏
             HStack {
                 HStack(spacing: 4) {
-                    Text("􀉪") // 人像图标
+                    // 使用 SF Symbols 原生图标，禁止硬编码私有 Unicode 码点
+                    Image(systemName: "person.2.fill")
                         .font(.subheadline)
                         .foregroundColor(.blue)
                     HStack(spacing: 0) {
@@ -71,7 +72,7 @@ struct ClassRankingCard: View {
                             .foregroundColor(.secondary.opacity(0.60))
                     }
                     .frame(width: 86, height: 50)
-                    .background(Color(.tertiarySystemGroupedBackground))
+                    .background(Color.tertiaryGroupedBackground)
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -83,7 +84,7 @@ struct ClassRankingCard: View {
             }
         }
         .padding(16)
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.secondaryGroupedBackground)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 }
@@ -142,7 +143,7 @@ private struct RankMiniChart: View {
                         x: .value("时间", p.date),
                         y: .value("排名", p.rankPercentage)
                     )
-                    .foregroundStyle(Color(.secondarySystemGroupedBackground))
+                    .foregroundStyle(Color.secondaryGroupedBackground)
                     .symbolSize(16)
                 }
             }

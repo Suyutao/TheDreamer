@@ -89,7 +89,9 @@ struct TrendAnalysisView: View {
                 .padding()
             }
             .navigationTitle("分数趋势")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
+            #endif
             .onAppear {
                 // 如果没有选择科目且有可用科目，默认选择前3个
                 if localSelectedSubjects.isEmpty && !subjects.isEmpty {
@@ -114,7 +116,7 @@ struct TrendAnalysisView: View {
             displayOptionsSection
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.secondaryGroupedBackground)
         .cornerRadius(12)
     }
     
@@ -149,7 +151,7 @@ struct TrendAnalysisView: View {
                             .background(
                                 localSelectedSubjects.contains(subject.id) 
                                 ? Color.blue.opacity(0.1) 
-                                : Color(.tertiarySystemGroupedBackground)
+                                : Color.tertiaryGroupedBackground
                             )
                             .cornerRadius(6)
                         }
