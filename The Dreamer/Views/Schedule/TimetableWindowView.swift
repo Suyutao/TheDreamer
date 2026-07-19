@@ -2,13 +2,13 @@ import SwiftUI
 import SwiftData
 
 struct TimetableWindowView: View {
-    @Environment(\.modelContext) private var modelContext
+    @Query private var timetables: [Timetable]
 
     let timetableID: PersistentIdentifier?
 
     private var timetable: Timetable? {
         guard let timetableID else { return nil }
-        return modelContext.model(for: timetableID) as? Timetable
+        return timetables.first { $0.persistentModelID == timetableID }
     }
 
     var body: some View {

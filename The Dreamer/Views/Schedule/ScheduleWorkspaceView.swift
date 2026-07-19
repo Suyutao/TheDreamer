@@ -20,6 +20,9 @@ struct ScheduleWorkspaceView: View {
     @Environment(\.openWindow) private var openWindow
     @Query(sort: \Timetable.startDate, order: .reverse) private var timetables: [Timetable]
     @Query(sort: \Course.name) private var courses: [Course]
+    @Query private var periods: [ClassPeriod]
+    @Query private var schedules: [CourseSchedule]
+    @Query private var scheduleOverrides: [ScheduleOverride]
 
     @State private var sidebarSelection: ScheduleWorkspaceSidebarSelection?
     @State private var category: ScheduleWorkspaceCategory = .arrangements
@@ -66,6 +69,14 @@ struct ScheduleWorkspaceView: View {
         case nil:
             nil
         }
+    }
+
+    private var availableItems: Set<ScheduleWorkspaceItem> {
+        Set(timetables.map { .timetable($0.persistentModelID) })
+            .union(courses.map { .course($0.persistentModelID) })
+            .union(periods.map { .period($0.persistentModelID) })
+            .union(schedules.map { .schedule($0.persistentModelID) })
+            .union(scheduleOverrides.map { .scheduleOverride($0.persistentModelID) })
     }
 
     private var deleteAction: (() -> Void)? {
@@ -158,7 +169,9 @@ struct ScheduleWorkspaceView: View {
         )
         .onAppear(perform: selectInitialDestination)
         .onChange(of: sidebarSelection, handleSidebarSelection)
+        .onChange(of: category) { _, _ in selectDefaultItem() }
         .onChange(of: timetables.map(\.persistentModelID), handleTimetableChanges)
+        .onChange(of: availableItems, handleAvailableItemsChange)
     }
 
     private func selectInitialDestination() {
@@ -192,6 +205,47 @@ struct ScheduleWorkspaceView: View {
               !newValue.contains(identifier)
         else { return }
         sidebarSelection = newValue.first.map(ScheduleWorkspaceSidebarSelection.timetable) ?? .courses
+    }
+
+    private func handleAvailableItemsChange(
+        _ oldValue: Set<ScheduleWorkspaceItem>,
+        _ newValue: Set<ScheduleWorkspaceItem>
+    ) {
+        guard let itemSelection, !newValue.contains(itemSelection) else { return }
+        selectDefaultItem()
+    }
+
+    private func selectDefaultItem() {
+        switch sidebarSelection {
+        case .courses:
+            itemSelection = courses.first.map { .course($0.persistentModelID) }
+        case .timetable(let identifier):
+            guard let timetable = timetables.first(where: { $0.persistentModelID == identifier }) else {
+                itemSelection = nil
+                return
+            }
+            itemSelection = defaultItem(in: timetable) ?? .timetable(identifier)
+        case nil:
+            itemSelection = nil
+        }
+    }
+
+    private func defaultItem(in timetable: Timetable) -> ScheduleWorkspaceItem? {
+        switch category {
+        case .arrangements:
+            timetable.schedules.sorted {
+                if $0.weekday != $1.weekday { return $0.weekday < $1.weekday }
+                return ($0.period?.startMinute ?? Int.max) < ($1.period?.startMinute ?? Int.max)
+            }.first.map { .schedule($0.persistentModelID) }
+        case .periods:
+            timetable.periods.sorted {
+                if $0.startMinute != $1.startMinute { return $0.startMinute < $1.startMinute }
+                return $0.orderIndex < $1.orderIndex
+            }.first.map { .period($0.persistentModelID) }
+        case .overrides:
+            timetable.overrides.sorted { $0.date < $1.date }
+                .first.map { .scheduleOverride($0.persistentModelID) }
+        }
     }
 
     private func createItem() {

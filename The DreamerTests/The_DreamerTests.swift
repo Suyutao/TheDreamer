@@ -35,6 +35,38 @@ struct The_DreamerTests {
         #expect(resolved?.name == "独立窗口课程表")
     }
 
+    @Test @MainActor func timetableEditsAndDeletionPersistAcrossWindowContexts() throws {
+        let container = try TheDreamerModelContainer.make(isStoredInMemoryOnly: true)
+        let primaryContext = ModelContext(container)
+        let timetable = Timetable(
+            name: "原窗口",
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400 * 30)
+        )
+        primaryContext.insert(timetable)
+        try primaryContext.save()
+        let identifier = timetable.persistentModelID
+
+        let secondaryContext = ModelContext(container)
+        let secondaryTimetable = try #require(
+            secondaryContext.model(for: identifier) as? Timetable
+        )
+        secondaryTimetable.name = "第二窗口已编辑"
+        try secondaryContext.save()
+
+        let verificationContext = ModelContext(container)
+        let updatedTimetable = try #require(
+            verificationContext.model(for: identifier) as? Timetable
+        )
+        #expect(updatedTimetable.name == "第二窗口已编辑")
+
+        secondaryContext.delete(secondaryTimetable)
+        try secondaryContext.save()
+
+        let deletionContext = ModelContext(container)
+        #expect(try deletionContext.fetchCount(FetchDescriptor<Timetable>()) == 0)
+    }
+
     @Test func deletingPeriodDeletesScheduleButKeepsCourse() throws {
         let container = try TheDreamerModelContainer.make(isStoredInMemoryOnly: true)
         let context = ModelContext(container)
