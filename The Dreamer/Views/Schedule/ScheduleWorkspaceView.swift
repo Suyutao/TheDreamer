@@ -400,34 +400,46 @@ private struct ScheduleWorkspaceDetail: View {
             switch selection {
             case .timetable(let identifier):
                 if let timetable = modelContext.model(for: identifier) as? Timetable {
-                    ScheduleEditorSheet(request: .timetable(timetable))
+                    TimetableEditView(timetable: timetable, presentation: .embedded)
                 } else {
                     unavailable
                 }
             case .course(let identifier):
                 if let course = modelContext.model(for: identifier) as? Course {
-                    ScheduleEditorSheet(request: .course(course))
+                    CourseEditView(course: course, presentation: .embedded)
                 } else {
                     unavailable
                 }
             case .period(let identifier):
                 if let period = modelContext.model(for: identifier) as? ClassPeriod,
                    let timetable = period.timetable {
-                    ScheduleEditorSheet(request: .period(timetable, period))
+                    ClassPeriodEditView(
+                        timetable: timetable,
+                        period: period,
+                        presentation: .embedded
+                    )
                 } else {
                     unavailable
                 }
             case .schedule(let identifier):
                 if let schedule = modelContext.model(for: identifier) as? CourseSchedule,
                    let timetable = schedule.timetable {
-                    ScheduleEditorSheet(request: .arrangement(timetable, schedule))
+                    CourseScheduleEditView(
+                        timetable: timetable,
+                        schedule: schedule,
+                        presentation: .embedded
+                    )
                 } else {
                     unavailable
                 }
             case .scheduleOverride(let identifier):
                 if let scheduleOverride = modelContext.model(for: identifier) as? ScheduleOverride,
                    let timetable = scheduleOverride.timetable {
-                    ScheduleEditorSheet(request: .scheduleOverride(timetable, scheduleOverride))
+                    ScheduleOverrideEditView(
+                        timetable: timetable,
+                        scheduleOverride: scheduleOverride,
+                        presentation: .embedded
+                    )
                 } else {
                     unavailable
                 }
@@ -435,6 +447,8 @@ private struct ScheduleWorkspaceDetail: View {
                 ContentUnavailableView("选择要编辑的内容", systemImage: "sidebar.right")
             }
         }
+        .frame(maxWidth: 720)
+        .frame(maxWidth: .infinity)
     }
 
     private var unavailable: some View {

@@ -811,15 +811,19 @@ struct ScheduleEditorSheet: View {
     var body: some View {
         switch request.kind {
         case .timetable(let timetable):
-            TimetableEditView(timetable: timetable)
+            TimetableEditView(timetable: timetable, presentation: .sheet)
         case .course(let course):
-            CourseEditView(course: course)
+            CourseEditView(course: course, presentation: .sheet)
         case .period(let timetable, let period):
-            ClassPeriodEditView(timetable: timetable, period: period)
+            ClassPeriodEditView(timetable: timetable, period: period, presentation: .sheet)
         case .arrangement(let timetable, let schedule):
-            CourseScheduleEditView(timetable: timetable, schedule: schedule)
+            CourseScheduleEditView(timetable: timetable, schedule: schedule, presentation: .sheet)
         case .scheduleOverride(let timetable, let scheduleOverride):
-            ScheduleOverrideEditView(timetable: timetable, scheduleOverride: scheduleOverride)
+            ScheduleOverrideEditView(
+                timetable: timetable,
+                scheduleOverride: scheduleOverride,
+                presentation: .sheet
+            )
         }
     }
 }

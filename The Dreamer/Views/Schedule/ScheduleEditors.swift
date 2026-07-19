@@ -7,6 +7,7 @@ struct TimetableEditView: View {
     @Query private var timetables: [Timetable]
 
     let timetable: Timetable?
+    let presentation: ScheduleEditorPresentation
 
     @State private var name: String
     @State private var startDate: Date
@@ -15,8 +16,12 @@ struct TimetableEditView: View {
     @State private var isCurrent: Bool
     @State private var saveError: String?
 
-    init(timetable: Timetable?) {
+    init(
+        timetable: Timetable?,
+        presentation: ScheduleEditorPresentation = .sheet
+    ) {
         self.timetable = timetable
+        self.presentation = presentation
         _name = State(initialValue: timetable?.name ?? "")
         _startDate = State(initialValue: timetable?.startDate ?? Calendar.current.startOfDay(for: Date()))
         _endDate = State(initialValue: timetable?.endDate ?? Calendar.current.date(byAdding: .month, value: 5, to: Date()) ?? Date())
@@ -35,7 +40,7 @@ struct TimetableEditView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ScheduleEditorContainer(presentation: presentation) {
             Form {
                 Section("基本信息") {
                     TextField("课程表名称", text: $name)
@@ -64,8 +69,10 @@ struct TimetableEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                if presentation == .sheet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("取消") { dismiss() }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") { save() }
@@ -129,7 +136,9 @@ struct TimetableEditView: View {
             do {
                 try await CalendarExportService.refresh(timetable: savedTimetable, modelContext: modelContext)
                 try await CourseNotificationService.refresh(timetable: activeTimetable)
-                dismiss()
+                if presentation == .sheet {
+                    dismiss()
+                }
             } catch {
                 saveError = "课程表已保存，但系统同步失败：\(error.localizedDescription)"
             }
@@ -144,6 +153,7 @@ struct CourseEditView: View {
     @Query private var timetables: [Timetable]
 
     let course: Course?
+    let presentation: ScheduleEditorPresentation
 
     @State private var name: String
     @State private var systemImage: String
@@ -155,8 +165,12 @@ struct CourseEditView: View {
         "globe.asia.australia", "atom", "flask", "leaf", "music.note", "paintpalette"
     ]
 
-    init(course: Course?) {
+    init(
+        course: Course?,
+        presentation: ScheduleEditorPresentation = .sheet
+    ) {
         self.course = course
+        self.presentation = presentation
         _name = State(initialValue: course?.name ?? "")
         _systemImage = State(initialValue: course?.systemImage ?? "book.closed")
         _subject = State(initialValue: course?.subject)
@@ -167,7 +181,7 @@ struct CourseEditView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ScheduleEditorContainer(presentation: presentation) {
             Form {
                 Section("课程") {
                     TextField("课程名称", text: $name)
@@ -190,8 +204,10 @@ struct CourseEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                if presentation == .sheet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("取消") { dismiss() }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") { save() }
@@ -229,7 +245,7 @@ struct CourseEditView: View {
             return
         }
 
-        refreshNotificationsAndDismiss()
+        refreshSystemIntegrations()
     }
 
     private func iconName(_ icon: String) -> String {
@@ -248,7 +264,7 @@ struct CourseEditView: View {
         }
     }
 
-    private func refreshNotificationsAndDismiss() {
+    private func refreshSystemIntegrations() {
         let affectedTimetables = course?.schedules.compactMap(\.timetable) ?? []
         let activeTimetable = timetables.first(where: { $0.isCurrent }) ?? timetables.first
         Task {
@@ -257,7 +273,9 @@ struct CourseEditView: View {
                     try await CalendarExportService.refresh(timetable: timetable, modelContext: modelContext)
                 }
                 try await CourseNotificationService.refresh(timetable: activeTimetable)
-                dismiss()
+                if presentation == .sheet {
+                    dismiss()
+                }
             } catch {
                 saveError = "课程已保存，但系统同步失败：\(error.localizedDescription)"
             }
@@ -276,6 +294,7 @@ struct ClassPeriodEditView: View {
 
     let timetable: Timetable
     let period: ClassPeriod?
+    let presentation: ScheduleEditorPresentation
 
     @State private var name: String
     @State private var orderIndex: Int
@@ -283,9 +302,14 @@ struct ClassPeriodEditView: View {
     @State private var endTime: Date
     @State private var saveError: String?
 
-    init(timetable: Timetable, period: ClassPeriod?) {
+    init(
+        timetable: Timetable,
+        period: ClassPeriod?,
+        presentation: ScheduleEditorPresentation = .sheet
+    ) {
         self.timetable = timetable
         self.period = period
+        self.presentation = presentation
         let nextIndex = (timetable.periods.map(\.orderIndex).max() ?? 0) + 1
         _name = State(initialValue: period?.name ?? "第\(nextIndex)节")
         _orderIndex = State(initialValue: period?.orderIndex ?? nextIndex)
@@ -307,7 +331,7 @@ struct ClassPeriodEditView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ScheduleEditorContainer(presentation: presentation) {
             Form {
                 Section("节次") {
                     TextField("名称", text: $name)
@@ -328,8 +352,10 @@ struct ClassPeriodEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                if presentation == .sheet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("取消") { dismiss() }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") { save() }
@@ -378,7 +404,9 @@ struct ClassPeriodEditView: View {
             do {
                 try await CalendarExportService.refresh(timetable: timetable, modelContext: modelContext)
                 try await CourseNotificationService.refresh(timetable: timetable)
-                dismiss()
+                if presentation == .sheet {
+                    dismiss()
+                }
             } catch {
                 saveError = "节次已保存，但系统同步失败：\(error.localizedDescription)"
             }
@@ -402,6 +430,7 @@ struct CourseScheduleEditView: View {
 
     let timetable: Timetable
     let schedule: CourseSchedule?
+    let presentation: ScheduleEditorPresentation
 
     @State private var course: Course?
     @State private var period: ClassPeriod?
@@ -414,9 +443,14 @@ struct CourseScheduleEditView: View {
     @State private var reminderLeadMinutes: Int
     @State private var saveError: String?
 
-    init(timetable: Timetable, schedule: CourseSchedule?) {
+    init(
+        timetable: Timetable,
+        schedule: CourseSchedule?,
+        presentation: ScheduleEditorPresentation = .sheet
+    ) {
         self.timetable = timetable
         self.schedule = schedule
+        self.presentation = presentation
         _course = State(initialValue: schedule?.course)
         _period = State(initialValue: schedule?.period)
         _weekday = State(initialValue: schedule?.weekday ?? 1)
@@ -454,7 +488,7 @@ struct CourseScheduleEditView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ScheduleEditorContainer(presentation: presentation) {
             Form {
                 Section("课程安排") {
                     Picker("课程", selection: $course) {
@@ -515,8 +549,10 @@ struct CourseScheduleEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                if presentation == .sheet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("取消") { dismiss() }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
@@ -597,7 +633,9 @@ struct CourseScheduleEditView: View {
         do {
             try await CalendarExportService.refresh(timetable: timetable, modelContext: modelContext)
             try await CourseNotificationService.refresh(timetable: timetable)
-            dismiss()
+            if presentation == .sheet {
+                dismiss()
+            }
         } catch {
             saveError = "课程安排已保存，但系统同步失败：\(error.localizedDescription)"
         }
@@ -615,6 +653,7 @@ struct ScheduleOverrideEditView: View {
 
     let timetable: Timetable
     let scheduleOverride: ScheduleOverride?
+    let presentation: ScheduleEditorPresentation
 
     @State private var date: Date
     @State private var action: ScheduleOverrideAction
@@ -624,9 +663,14 @@ struct ScheduleOverrideEditView: View {
     @State private var endTime: Date
     @State private var saveError: String?
 
-    init(timetable: Timetable, scheduleOverride: ScheduleOverride?) {
+    init(
+        timetable: Timetable,
+        scheduleOverride: ScheduleOverride?,
+        presentation: ScheduleEditorPresentation = .sheet
+    ) {
         self.timetable = timetable
         self.scheduleOverride = scheduleOverride
+        self.presentation = presentation
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -714,7 +758,7 @@ struct ScheduleOverrideEditView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ScheduleEditorContainer(presentation: presentation) {
             Form {
                 Section("调整") {
                     DatePicker(
@@ -768,8 +812,10 @@ struct ScheduleOverrideEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                if presentation == .sheet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("取消") { dismiss() }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
@@ -871,7 +917,9 @@ struct ScheduleOverrideEditView: View {
             do {
                 try await CalendarExportService.refresh(timetable: timetable, modelContext: modelContext)
                 try await CourseNotificationService.refresh(timetable: timetable)
-                dismiss()
+                if presentation == .sheet {
+                    dismiss()
+                }
             } catch {
                 saveError = "日期调整已保存，但系统同步失败：\(error.localizedDescription)"
             }
