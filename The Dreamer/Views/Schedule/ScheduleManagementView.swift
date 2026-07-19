@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-struct ScheduleManagementView: View {
+struct CompactScheduleManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Timetable.startDate, order: .reverse) private var timetables: [Timetable]
     @Query(sort: \Course.name) private var courses: [Course]
@@ -706,7 +706,7 @@ struct TimetableManagementDetailView: View {
     }
 }
 
-private struct ScheduleOverrideManagementRow: View {
+struct ScheduleOverrideManagementRow: View {
     let scheduleOverride: ScheduleOverride
 
     private var title: String {
@@ -740,7 +740,7 @@ private struct ScheduleOverrideManagementRow: View {
     }
 }
 
-private struct ScheduleManagementRow: View {
+struct ScheduleManagementRow: View {
     let schedule: CourseSchedule
 
     var body: some View {
@@ -805,7 +805,7 @@ struct ScheduleEditorRequest: Identifiable {
     }
 }
 
-private struct ScheduleEditorSheet: View {
+struct ScheduleEditorSheet: View {
     let request: ScheduleEditorRequest
 
     var body: some View {
