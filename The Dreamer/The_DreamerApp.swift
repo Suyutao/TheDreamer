@@ -66,6 +66,10 @@ struct TheDreamerApp: App {
         // 将我们创建的模型容器附加到场景中，这样应用的所有部分都可以访问这些数据模型
         .modelContainer(sharedModelContainer)
         .commands {
+            #if os(iOS) || os(macOS)
+            SidebarCommands()
+            ToolbarCommands()
+            #endif
             ScheduleWorkspaceCommands()
         }
 
@@ -73,9 +77,6 @@ struct TheDreamerApp: App {
             TimetableWindowView(timetableID: timetableID.wrappedValue)
         }
         .modelContainer(sharedModelContainer)
-        .commands {
-            ScheduleWorkspaceCommands()
-        }
         #if os(macOS)
         .defaultSize(width: 1180, height: 760)
         .windowResizability(.contentMinSize)
