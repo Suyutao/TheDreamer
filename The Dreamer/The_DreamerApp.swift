@@ -34,57 +34,57 @@ import SwiftData
 // 这是应用的主结构体，它遵循 App 协议，表示这是一个 SwiftUI 应用
 @main
 struct TheDreamerApp: App {
-    // 这里定义了一个名为 sharedModelContainer 的变量，它是一个 ModelContainer 类型
-    // ModelContainer 是 SwiftData 用来管理数据模型的容器
-    var sharedModelContainer: ModelContainer = {
-        // 创建一个 schema，它定义了应用中所有需要持久化的数据模型
-        let schema = Schema([
-            // 基础定义模型
-            TestMethod.self,
-            QuestionType.self,
-            
-            // 核心配置与枢纽模型
-            Subject.self,
-            
-            // 模板与题目模板
-            PaperStructure.self,
-            PaperTemplate.self,
-            QuestionDefinition.self,
-            QuestionTemplate.self,
-            
-            // 考试实例、考试组与题目实例
-            Exam.self,
-            ExamGroup.self,
-            ExamSchedule.self,
-            Question.self,
-            QuestionResult.self,
-            
-            // 练习实例与练习组
-            PracticeCollection.self,
-            Practice.self,
-            
-            // 排名数据
-            RankData.self
-        ])
-        // 创建一个模型配置，指定 schema 并设置数据不是仅存储在内存中（即会持久化到磁盘）
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    private let sharedModelContainer: ModelContainer
+    private let modelContainerError: String?
 
-        // 尝试创建 ModelContainer，如果失败则应用会崩溃并显示错误信息
+    init() {
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            sharedModelContainer = try TheDreamerModelContainer.make()
+            modelContainerError = nil
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            modelContainerError = String(describing: error)
+            do {
+                sharedModelContainer = try TheDreamerModelContainer.make(isStoredInMemoryOnly: true)
+            } catch {
+                fatalError("Could not create temporary ModelContainer: \(error)")
+            }
         }
-    }()
+    }
 
     // 这是应用的主体部分，定义了应用的用户界面
     var body: some Scene {
         WindowGroup {
-            // 这里是应用的根视图
-            ContentView()
+            if let modelContainerError {
+                ModelContainerErrorView(errorDescription: modelContainerError)
+            } else {
+                ContentView()
+            }
         }
         // 将我们创建的模型容器附加到场景中，这样应用的所有部分都可以访问这些数据模型
         .modelContainer(sharedModelContainer)
+
+        WindowGroup("课程表", id: "timetable-workspace", for: PersistentIdentifier.self) { timetableID in
+            TimetableWindowView(timetableID: timetableID.wrappedValue)
+        }
+        .modelContainer(sharedModelContainer)
+    }
+}
+
+private struct ModelContainerErrorView: View {
+    let errorDescription: String
+
+    var body: some View {
+        ContentUnavailableView {
+            Label("无法打开本地数据", systemImage: "externaldrive.badge.exclamationmark")
+        } description: {
+            Text("旧数据库没有被删除。请复制下方错误信息后关闭应用。")
+        } actions: {
+            Text(errorDescription)
+                .font(.caption.monospaced())
+                .textSelection(.enabled)
+                .frame(maxWidth: 600)
+        }
+        .padding()
     }
 }
 
