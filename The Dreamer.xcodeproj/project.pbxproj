@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		486335AC30090504004E00A1 /* Models.swift（补充在 Subject 类定义后） in Resources */ = {isa = PBXBuildFile; fileRef = 486335AB30090504004E00A1 /* Models.swift（补充在 Subject 类定义后） */; };
 		7A0000013019000000000001 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 7A0000033019000000000003 /* Yams */; };
 /* End PBXBuildFile section */
 
@@ -29,7 +28,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		486335AB30090504004E00A1 /* Models.swift（补充在 Subject 类定义后） */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Models.swift（补充在 Subject 类定义后）"; sourceTree = "<group>"; };
 		48AC4FC92E30FEB4009F66B5 /* The Dreamer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "The Dreamer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		48AC4FDA2E30FEB5009F66B5 /* The DreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The DreamerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		48AC4FE42E30FEB5009F66B5 /* The DreamerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The DreamerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -117,7 +115,6 @@
 				48AC4FCB2E30FEB4009F66B5 /* The Dreamer */,
 				48AC4FDD2E30FEB5009F66B5 /* The DreamerTests */,
 				48AC4FE72E30FEB5009F66B5 /* The DreamerUITests */,
-				486335AB30090504004E00A1 /* Models.swift（补充在 Subject 类定义后） */,
 				48AC4FCA2E30FEB4009F66B5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -257,7 +254,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				486335AC30090504004E00A1 /* Models.swift（补充在 Subject 类定义后） in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

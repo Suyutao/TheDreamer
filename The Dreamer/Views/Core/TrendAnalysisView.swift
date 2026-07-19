@@ -219,7 +219,7 @@ struct TrendAnalysisView: View {
             subjectName: subject.name,
             scoreText: String(Int(latestExam?.score ?? 0)),
             date: latestExam?.date ?? Date(),
-            iconSystemName: getSubjectIcon(for: subject),
+            iconSystemName: subject.systemImage,
             miniSeries: series,
             showYAxisAsPercentage: showYAxisAsPercentage
         )
@@ -236,31 +236,6 @@ struct TrendAnalysisView: View {
         }
     }
     
-    /// 获取科目图标
-    private func getSubjectIcon(for subject: Subject) -> String {
-        switch subject.name {
-        case "数学":
-            return "function"
-        case "语文":
-            return "textformat"
-        case "英语":
-            return "textformat.abc"
-        case "物理":
-            return "atom"
-        case "化学":
-            return "flask"
-        case "生物":
-            return "leaf"
-        case "政治":
-            return "flag"
-        case "历史":
-            return "book.closed"
-        case "地理":
-            return "globe.asia.australia"
-        default:
-            return "book"
-        }
-    }
 }
 
 #Preview {

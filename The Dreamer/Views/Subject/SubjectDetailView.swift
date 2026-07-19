@@ -28,32 +28,6 @@ struct SubjectDetailView: View {
     }
     
     // MARK: - Helper
-    /// 获取指定科目的SF Symbol图标
-    private func getSubjectIcon(for subject: Subject) -> String {
-        switch subject.name {
-        case let name where name.contains("语文"):
-            return "text.book.closed"
-        case let name where name.contains("数学"):
-            return "function"
-        case let name where name.contains("英语"):
-            return "textformat.abc"
-        case let name where name.contains("物理"):
-            return "atom"
-        case let name where name.contains("化学"):
-            return "flask"
-        case let name where name.contains("生物"):
-            return "leaf"
-        case let name where name.contains("历史"):
-            return "clock"
-        case let name where name.contains("地理"):
-            return "globe.asia.australia"
-        case let name where name.contains("政治"):
-            return "building.columns"
-        default:
-            return "book"
-        }
-    }
-    
     /// 获取指定科目的最新考试记录
     private func getLatestExam(for subject: Subject) -> Exam? {
         subject.exams.sorted { $0.date > $1.date }.first
@@ -129,7 +103,7 @@ struct SubjectDetailView: View {
         Section {
             // 科目图标和基本信息
             HStack(spacing: 16) {
-                Image(systemName: getSubjectIcon(for: subject))
+                Image(systemName: subject.systemImage)
                     .font(.title)
                     .foregroundStyle(.tint)
                     .frame(width: 44, height: 44)
