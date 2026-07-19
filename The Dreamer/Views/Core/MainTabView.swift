@@ -37,26 +37,15 @@ struct MainTabView: View {
         Group {
             #if os(macOS)
             NavigationSplitView {
-                ScrollView {
-                    LazyVStack(spacing: 4) {
-                        ForEach(MainDestination.allCases) { destination in
-                            Button {
-                                selection = destination
-                            } label: {
-                                Label(destination.title, systemImage: destination.systemImage)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(selection == destination ? Color.accentColor.opacity(0.14) : Color.clear)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                                    .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
+                List(selection: $selection) {
+                    ForEach(MainDestination.allCases) { destination in
+                        Label(destination.title, systemImage: destination.systemImage)
+                            .tag(destination)
                     }
-                    .padding(8)
                 }
+                .listStyle(.sidebar)
                 .navigationTitle("The Dreamer")
+                .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 280)
             } detail: {
                 destinationView(selection)
             }
