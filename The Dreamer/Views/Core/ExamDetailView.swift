@@ -167,11 +167,12 @@ struct ExamDetailView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
         .navigationTitle("详细信息")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .sheet(isPresented: $showingEditView) {
-            NavigationView {
+            NavigationStack {
                 AddDataView(dataType: Binding.constant(.exam), examToEdit: exam, preselectedSubject: nil)
             }
         }

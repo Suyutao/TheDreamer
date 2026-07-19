@@ -3,15 +3,28 @@
     {
       "value" : {
         "linear-gradient" : [
-          "display-p3:0.18039,0.30588,0.45098,1.00000",
-          "display-p3:0.00000,0.12941,0.27843,1.00000"
-        ]
+          "display-p3:0.93703,0.95207,0.96959,1.00000",
+          "display-p3:0.82080,0.90360,1.00000,1.00000"
+        ],
+        "orientation" : {
+          "start" : {
+            "x" : 0.5,
+            "y" : 1
+          },
+          "stop" : {
+            "x" : 0.5,
+            "y" : 0
+          }
+        }
       }
     },
     {
       "appearance" : "dark",
       "value" : {
-        "automatic-gradient" : "display-p3:0.00000,0.03738,0.08043,1.00000"
+        "linear-gradient" : [
+          "display-p3:0.08969,0.16287,0.25244,1.00000",
+          "display-p3:0.02015,0.04613,0.07813,1.00000"
+        ]
       }
     }
   ],
@@ -20,6 +33,23 @@
       "hidden" : false,
       "layers" : [
         {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "automatic-gradient" : "display-p3:0.80607,0.70315,0.48238,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "automatic-gradient" : "display-p3:0.63428,0.55859,0.39624,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "system-light"
+            }
+          ],
           "glass" : true,
           "image-name" : "Thread3@3x.png",
           "name" : "Thread3@3x",
@@ -32,10 +62,34 @@
           }
         },
         {
+          "blend-mode-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : "normal"
+            }
+          ],
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "automatic-gradient" : "display-p3:0.59619,0.52148,0.36084,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "system-light"
+            }
+          ],
           "glass" : true,
           "hidden" : false,
           "image-name" : "Thread1@3x.png",
           "name" : "Thread1@3x",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 1
+            }
+          ],
           "position" : {
             "scale" : 0.5,
             "translation-in-points" : [
@@ -45,11 +99,40 @@
           }
         },
         {
-          "blend-mode" : "normal",
-          "glass" : false,
+          "blend-mode-specializations" : [
+            {
+              "value" : "normal"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "normal"
+            }
+          ],
+          "fill-specializations" : [
+            {
+              "value" : "system-dark"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "system-light"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "system-light"
+            }
+          ],
+          "glass" : true,
           "image-name" : "Thread2@3x.png",
           "name" : "Thread2@3x",
-          "opacity" : 1,
+          "opacity-specializations" : [
+            {
+              "value" : 1
+            },
+            {
+              "appearance" : "dark",
+              "value" : 1
+            }
+          ],
           "position" : {
             "scale" : 0.5,
             "translation-in-points" : [
@@ -75,7 +158,34 @@
       "layers" : [
         {
           "blend-mode" : "normal",
-          "fill" : "none",
+          "fill-specializations" : [
+            {
+              "value" : "system-dark"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "system-light"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "linear-gradient" : [
+                  "gray:0.75000,1.00000",
+                  "gray:0.75000,0.51000"
+                ],
+                "orientation" : {
+                  "start" : {
+                    "x" : 0.23360778191476672,
+                    "y" : 0
+                  },
+                  "stop" : {
+                    "x" : 1,
+                    "y" : 1
+                  }
+                }
+              }
+            }
+          ],
           "glass" : true,
           "hidden" : false,
           "image-name" : "TopFill@3x.png",
@@ -104,6 +214,34 @@
       "hidden" : false,
       "layers" : [
         {
+          "fill-specializations" : [
+            {
+              "value" : "system-dark"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "system-light"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "linear-gradient" : [
+                  "gray:1.00000,1.00000",
+                  "gray:1.00000,0.12000"
+                ],
+                "orientation" : {
+                  "start" : {
+                    "x" : 0.5000000000000002,
+                    "y" : 1
+                  },
+                  "stop" : {
+                    "x" : 0.5000000000000002,
+                    "y" : -0.16591589220839215
+                  }
+                }
+              }
+            }
+          ],
           "image-name" : "BottomFill@3x.png",
           "name" : "BottomFill@3x",
           "position" : {

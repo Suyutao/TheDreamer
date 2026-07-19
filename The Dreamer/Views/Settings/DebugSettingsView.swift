@@ -30,186 +30,9 @@ struct DebugSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                // 数据修复分组（移到前面）
-                Section("数据修复") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "wrench.and.screwdriver.fill")
-                                .foregroundColor(.orange)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("修复分数和满分异常")
-                                    .font(.headline)
-                                    .foregroundColor(.orange)
-                                
-                                Text("检查并修复分数/满分颠倒问题，同时同步科目满分设置")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Button(action: {
-                            fixScoreDisplayIssues()
-                        }) {
-                            HStack {
-                                Spacer()
-                                Text("执行数据修复")
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.orange)
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                // 调试信息分组
-                Section("调试信息") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("应用版本")
-                                    .font(.headline)
-                                Text("v6.0 (Debug Mode)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        // 数据计数信息
-                        DataCountView()
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                // 危险操作分组（移到最后）
-                Section("危险操作") {
-                    // 清除所有数据（带安全验证）
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("清除所有数据")
-                                    .font(.headline)
-                                    .foregroundColor(.red)
-                                
-                                Text("此操作将永久删除所有科目、考试、练习等数据，且无法恢复。")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        // 安全验证输入框
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("请输入以下内容进行验证：")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("\"\(deleteConfirmationKeyword)\"")
-                                .font(.caption.monospaced())
-                                .foregroundColor(.primary)
-                                
-                            TextField("输入验证文本", text: $confirmationText)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.body.monospaced())
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.none)
-                                
-                            if showValidationError {
-                                Text("验证文本不匹配，请重新输入")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                            }
-                        }
-                        
-                        // 执行删除按钮
-                        Button(action: {
-                            validateAndDelete()
-                        }) {
-                            HStack {
-                                Spacer()
-                                Text("永久删除所有数据")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
-                        .disabled(confirmationText != deleteConfirmationKeyword)
-                        .opacity(confirmationText != deleteConfirmationKeyword ? 0.6 : 1.0)
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                // 数据修复分组
-                Section("数据修复") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "wrench.and.screwdriver.fill")
-                                .foregroundColor(.orange)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("修复分数显示异常")
-                                    .font(.headline)
-                                    .foregroundColor(.orange)
-                                
-                                Text("检查并修复可能存在的分数/满分颠倒问题")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Button(action: {
-                            fixScoreDisplayIssues()
-                        }) {
-                            HStack {
-                                Spacer()
-                                Text("执行数据修复")
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.orange)
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                // 调试信息分组
-                Section("调试信息") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("应用版本")
-                                    .font(.headline)
-                                Text("v6.0 (Debug Mode)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        // 数据计数信息
-                        DataCountView()
-                    }
-                    .padding(.vertical, 8)
-                }
+                repairSection
+                debugInfoSection
+                destructiveSection
             }
             .navigationTitle("调试设置")
             #if os(iOS)
@@ -237,6 +60,59 @@ struct DebugSettingsView: View {
             } message: {
                 Text(fixResultMessage)
             }
+        }
+    }
+
+    private var repairSection: some View {
+        Section("数据修复") {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("修复分数和满分异常", systemImage: "wrench.and.screwdriver.fill")
+                    .font(.headline)
+                    .foregroundStyle(.orange)
+                Text("检查并修复分数/满分颠倒问题，同时同步科目满分设置")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("执行数据修复", action: fixScoreDisplayIssues)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+            }
+            .padding(.vertical, 8)
+        }
+    }
+
+    private var debugInfoSection: some View {
+        Section("调试信息") {
+            Label("应用版本", systemImage: "info.circle.fill")
+                .font(.headline)
+                .foregroundStyle(.blue)
+            DataCountView()
+        }
+    }
+
+    private var destructiveSection: some View {
+        Section("危险操作") {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("清除所有数据", systemImage: "exclamationmark.triangle.fill")
+                    .font(.headline)
+                    .foregroundStyle(.red)
+                Text("此操作将永久删除所有科目、考试、练习等数据，且无法恢复。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("请输入“\(deleteConfirmationKeyword)”进行验证")
+                    .font(.caption)
+                TextField("输入验证文本", text: $confirmationText)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+                if showValidationError {
+                    Text("验证文本不匹配，请重新输入")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                Button("永久删除所有数据", role: .destructive, action: validateAndDelete)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(confirmationText != deleteConfirmationKeyword)
+            }
+            .padding(.vertical, 8)
         }
     }
     

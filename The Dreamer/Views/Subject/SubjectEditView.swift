@@ -113,7 +113,7 @@ struct SubjectEditView: View {
                         .frame(minHeight: 100)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(.separator), lineWidth: 0.5)
+                                .stroke(Color.separatorColor, lineWidth: 0.5)
                         )
                 }
                 

@@ -11,7 +11,7 @@
       "codeOrganization": {
         "directories": ["Models/", "Views/", "Components/", "Utils/"]
       },
-      "buildCommand": "xcodebuild -project The Dreamer.xcodeproj -scheme The Dreamer -destination platform=iOS Simulator,name=iPhone 16 Pro clean build"
+      "buildCommand": "xcodebuild -project The Dreamer.xcodeproj -scheme The Dreamer -destination platform=iOS Simulator,name=iPhone 17 Pro clean build"
     }
   },
   "phases": [

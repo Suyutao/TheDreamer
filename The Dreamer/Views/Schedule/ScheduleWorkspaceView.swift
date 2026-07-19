@@ -1,0 +1,632 @@
+import SwiftUI
+import SwiftData
+
+struct ScheduleManagementView: View {
+    var body: some View {
+        #if os(macOS)
+        ScheduleWorkspaceView()
+        #else
+        ViewThatFits(in: .horizontal) {
+            ScheduleWorkspaceView()
+                .frame(minWidth: 720)
+            CompactScheduleManagementView()
+        }
+        #endif
+    }
+}
+
+struct ScheduleWorkspaceView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.openWindow) private var openWindow
+    @Query(sort: \Timetable.startDate, order: .reverse) private var timetables: [Timetable]
+    @Query(sort: \Course.name) private var courses: [Course]
+    @Query private var periods: [ClassPeriod]
+    @Query private var schedules: [CourseSchedule]
+    @Query private var scheduleOverrides: [ScheduleOverride]
+
+    @State private var sidebarSelection: ScheduleWorkspaceSidebarSelection?
+    @State private var category: ScheduleWorkspaceCategory = .arrangements
+    @State private var itemSelection: ScheduleWorkspaceItem?
+    @State private var editorRequest: ScheduleEditorRequest?
+    @State private var deletionRequest: ScheduleWorkspaceDeletionRequest?
+
+    init(initialTimetableID: PersistentIdentifier? = nil) {
+        _sidebarSelection = State(
+            initialValue: initialTimetableID.map(ScheduleWorkspaceSidebarSelection.timetable)
+        )
+        _itemSelection = State(
+            initialValue: initialTimetableID.map(ScheduleWorkspaceItem.timetable)
+        )
+    }
+
+    private var selectedTimetable: Timetable? {
+        guard case .timetable(let identifier) = sidebarSelection else { return nil }
+        return modelContext.model(for: identifier) as? Timetable
+    }
+
+    private var selectedDeletionRequest: ScheduleWorkspaceDeletionRequest? {
+        switch itemSelection {
+        case .timetable(let identifier):
+            (modelContext.model(for: identifier) as? Timetable).map(
+                ScheduleWorkspaceDeletionRequest.timetable
+            )
+        case .course(let identifier):
+            (modelContext.model(for: identifier) as? Course).map(
+                ScheduleWorkspaceDeletionRequest.course
+            )
+        case .period(let identifier):
+            (modelContext.model(for: identifier) as? ClassPeriod).map(
+                ScheduleWorkspaceDeletionRequest.period
+            )
+        case .schedule(let identifier):
+            (modelContext.model(for: identifier) as? CourseSchedule).map(
+                ScheduleWorkspaceDeletionRequest.schedule
+            )
+        case .scheduleOverride(let identifier):
+            (modelContext.model(for: identifier) as? ScheduleOverride).map(
+                ScheduleWorkspaceDeletionRequest.scheduleOverride
+            )
+        case nil:
+            nil
+        }
+    }
+
+    private var availableItems: Set<ScheduleWorkspaceItem> {
+        Set(timetables.map { .timetable($0.persistentModelID) })
+            .union(courses.map { .course($0.persistentModelID) })
+            .union(periods.map { .period($0.persistentModelID) })
+            .union(schedules.map { .schedule($0.persistentModelID) })
+            .union(scheduleOverrides.map { .scheduleOverride($0.persistentModelID) })
+    }
+
+    private var deleteAction: (() -> Void)? {
+        guard let selectedDeletionRequest else { return nil }
+        return {
+            deletionRequest = selectedDeletionRequest
+        }
+    }
+
+    var body: some View {
+        NavigationSplitView {
+            ScheduleWorkspaceSidebar(
+                timetables: timetables,
+                selection: $sidebarSelection,
+                createTimetable: { editorRequest = .timetable(nil) },
+                createCourse: { editorRequest = .course(nil) },
+                deleteTimetable: { deletionRequest = .timetable($0) }
+            )
+            .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
+        } content: {
+            ScheduleWorkspaceContent(
+                timetable: selectedTimetable,
+                courses: courses,
+                sidebarSelection: sidebarSelection,
+                category: $category,
+                itemSelection: $itemSelection,
+                createItem: createItem,
+                deleteItem: { deletionRequest = $0 }
+            )
+            .navigationSplitViewColumnWidth(min: 320, ideal: 440, max: 620)
+        } detail: {
+            ScheduleWorkspaceDetail(selection: itemSelection)
+                .id(itemSelection)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                if let selectedTimetable {
+                    Button("在新窗口中打开", systemImage: "macwindow.badge.plus") {
+                        openWindow(
+                            id: "timetable-workspace",
+                            value: selectedTimetable.persistentModelID
+                        )
+                    }
+                    .help("在新窗口中打开")
+                }
+
+                if let selectedDeletionRequest {
+                    Button("删除", systemImage: "trash", role: .destructive) {
+                        deletionRequest = selectedDeletionRequest
+                    }
+                    .keyboardShortcut(.delete, modifiers: [])
+                    .help("删除所选内容")
+                }
+
+                Menu {
+                    Button("新建课程表", systemImage: "calendar.badge.plus") {
+                        editorRequest = .timetable(nil)
+                    }
+                    Button("新建课程", systemImage: "book.closed") {
+                        editorRequest = .course(nil)
+                    }
+                    if let selectedTimetable {
+                        Button("添加节次", systemImage: "clock.badge.plus") {
+                            editorRequest = .period(selectedTimetable, nil)
+                        }
+                        Button("添加课程安排", systemImage: "plus") {
+                            editorRequest = .arrangement(selectedTimetable, nil)
+                        }
+                        .disabled(selectedTimetable.periods.isEmpty || courses.isEmpty)
+                        Button("添加日期调整", systemImage: "calendar.badge.clock") {
+                            editorRequest = .scheduleOverride(selectedTimetable, nil)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .help("新增")
+            }
+        }
+        .sheet(item: $editorRequest) { request in
+            ScheduleEditorSheet(request: request)
+        }
+        .focusedSceneValue(\.scheduleNewAction, createItem)
+        .focusedSceneValue(\.scheduleDeleteAction, deleteAction)
+        .scheduleWorkspaceDeletion(
+            request: $deletionRequest,
+            sidebarSelection: $sidebarSelection,
+            itemSelection: $itemSelection
+        )
+        .onAppear(perform: selectInitialDestination)
+        .onChange(of: sidebarSelection, handleSidebarSelection)
+        .onChange(of: category) { _, _ in selectDefaultItem() }
+        .onChange(of: timetables.map(\.persistentModelID), handleTimetableChanges)
+        .onChange(of: availableItems, handleAvailableItemsChange)
+    }
+
+    private func selectInitialDestination() {
+        guard sidebarSelection == nil else { return }
+        if let timetable = timetables.first(where: { $0.isCurrent }) ?? timetables.first {
+            sidebarSelection = .timetable(timetable.persistentModelID)
+        } else {
+            sidebarSelection = .courses
+        }
+    }
+
+    private func handleSidebarSelection(
+        _ oldValue: ScheduleWorkspaceSidebarSelection?,
+        _ newValue: ScheduleWorkspaceSidebarSelection?
+    ) {
+        switch newValue {
+        case .timetable(let identifier):
+            itemSelection = .timetable(identifier)
+        case .courses:
+            itemSelection = courses.first.map { .course($0.persistentModelID) }
+        case nil:
+            itemSelection = nil
+        }
+    }
+
+    private func handleTimetableChanges(
+        _ oldValue: [PersistentIdentifier],
+        _ newValue: [PersistentIdentifier]
+    ) {
+        guard case .timetable(let identifier) = sidebarSelection,
+              !newValue.contains(identifier)
+        else { return }
+        sidebarSelection = newValue.first.map(ScheduleWorkspaceSidebarSelection.timetable) ?? .courses
+    }
+
+    private func handleAvailableItemsChange(
+        _ oldValue: Set<ScheduleWorkspaceItem>,
+        _ newValue: Set<ScheduleWorkspaceItem>
+    ) {
+        guard let itemSelection, !newValue.contains(itemSelection) else { return }
+        selectDefaultItem()
+    }
+
+    private func selectDefaultItem() {
+        switch sidebarSelection {
+        case .courses:
+            itemSelection = courses.first.map { .course($0.persistentModelID) }
+        case .timetable(let identifier):
+            guard let timetable = timetables.first(where: { $0.persistentModelID == identifier }) else {
+                itemSelection = nil
+                return
+            }
+            itemSelection = defaultItem(in: timetable) ?? .timetable(identifier)
+        case nil:
+            itemSelection = nil
+        }
+    }
+
+    private func defaultItem(in timetable: Timetable) -> ScheduleWorkspaceItem? {
+        switch category {
+        case .arrangements:
+            timetable.schedules.sorted {
+                if $0.weekday != $1.weekday { return $0.weekday < $1.weekday }
+                return ($0.period?.startMinute ?? Int.max) < ($1.period?.startMinute ?? Int.max)
+            }.first.map { .schedule($0.persistentModelID) }
+        case .periods:
+            timetable.periods.sorted {
+                if $0.startMinute != $1.startMinute { return $0.startMinute < $1.startMinute }
+                return $0.orderIndex < $1.orderIndex
+            }.first.map { .period($0.persistentModelID) }
+        case .overrides:
+            timetable.overrides.sorted { $0.date < $1.date }
+                .first.map { .scheduleOverride($0.persistentModelID) }
+        }
+    }
+
+    private func createItem() {
+        if case .courses = sidebarSelection {
+            editorRequest = .course(nil)
+            return
+        }
+        guard let selectedTimetable else { return }
+        switch category {
+        case .arrangements:
+            editorRequest = .arrangement(selectedTimetable, nil)
+        case .periods:
+            editorRequest = .period(selectedTimetable, nil)
+        case .overrides:
+            editorRequest = .scheduleOverride(selectedTimetable, nil)
+        }
+    }
+}
+
+private struct ScheduleWorkspaceSidebar: View {
+    let timetables: [Timetable]
+    @Binding var selection: ScheduleWorkspaceSidebarSelection?
+    let createTimetable: () -> Void
+    let createCourse: () -> Void
+    let deleteTimetable: (Timetable) -> Void
+
+    var body: some View {
+        List(selection: $selection) {
+            Section("课程表") {
+                ForEach(timetables) { timetable in
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(timetable.name)
+                            Text(timetable.startDate, format: .dateTime.year().month().day())
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: timetable.isCurrent ? "calendar.circle.fill" : "calendar")
+                            .foregroundStyle(timetable.isCurrent ? Color.accentColor : Color.secondary)
+                    }
+                    .tag(ScheduleWorkspaceSidebarSelection.timetable(timetable.persistentModelID))
+                    .contextMenu {
+                        Button("编辑课程表", systemImage: "pencil") {
+                            selection = .timetable(timetable.persistentModelID)
+                        }
+                        Divider()
+                        Button(role: .destructive) {
+                            deleteTimetable(timetable)
+                        } label: {
+                            Label("删除课程表", systemImage: "trash")
+                        }
+                    }
+                }
+
+                Button("新建课程表", systemImage: "calendar.badge.plus", action: createTimetable)
+                    .buttonStyle(.plain)
+            }
+
+            Section("资料") {
+                Label("课程库", systemImage: "books.vertical")
+                    .tag(ScheduleWorkspaceSidebarSelection.courses)
+                Button("新建课程", systemImage: "book.closed", action: createCourse)
+                    .buttonStyle(.plain)
+            }
+        }
+        .navigationTitle("课程管理")
+    }
+}
+
+private struct ScheduleWorkspaceContent: View {
+    let timetable: Timetable?
+    let courses: [Course]
+    let sidebarSelection: ScheduleWorkspaceSidebarSelection?
+    @Binding var category: ScheduleWorkspaceCategory
+    @Binding var itemSelection: ScheduleWorkspaceItem?
+    let createItem: () -> Void
+    let deleteItem: (ScheduleWorkspaceDeletionRequest) -> Void
+
+    private var sortedSchedules: [CourseSchedule] {
+        guard let timetable else { return [] }
+        return timetable.schedules.sorted {
+            if $0.weekday != $1.weekday { return $0.weekday < $1.weekday }
+            return ($0.period?.startMinute ?? Int.max) < ($1.period?.startMinute ?? Int.max)
+        }
+    }
+
+    private var sortedPeriods: [ClassPeriod] {
+        timetable?.periods.sorted {
+            if $0.startMinute != $1.startMinute { return $0.startMinute < $1.startMinute }
+            return $0.orderIndex < $1.orderIndex
+        } ?? []
+    }
+
+    private var sortedOverrides: [ScheduleOverride] {
+        timetable?.overrides.sorted { $0.date < $1.date } ?? []
+    }
+
+    var body: some View {
+        Group {
+            if case .courses = sidebarSelection {
+                courseList
+            } else if let timetable {
+                timetableContent(timetable)
+            } else {
+                ContentUnavailableView("选择课程表", systemImage: "calendar")
+            }
+        }
+        .navigationTitle(contentTitle)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("新增", systemImage: "plus", action: createItem)
+            }
+        }
+    }
+
+    private var contentTitle: String {
+        if case .courses = sidebarSelection { return "课程库" }
+        return timetable?.name ?? "课程表"
+    }
+
+    private var courseList: some View {
+        List(courses, selection: $itemSelection) { course in
+            Label(course.name, systemImage: course.systemImage)
+                .tag(ScheduleWorkspaceItem.course(course.persistentModelID))
+                .contextMenu {
+                    deleteButton("删除课程") {
+                        deleteItem(.course(course))
+                    }
+                }
+                .swipeActions {
+                    deleteButton("删除") {
+                        deleteItem(.course(course))
+                    }
+                }
+        }
+        .overlay {
+            if courses.isEmpty {
+                ContentUnavailableView("尚无课程", systemImage: "books.vertical")
+            }
+        }
+    }
+
+    private func timetableContent(_ timetable: Timetable) -> some View {
+        VStack(spacing: 0) {
+            Picker("内容", selection: $category) {
+                ForEach(ScheduleWorkspaceCategory.allCases) { item in
+                    Label(item.title, systemImage: item.systemImage)
+                        .tag(item)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding()
+
+            Divider()
+
+            switch category {
+            case .arrangements:
+                arrangementCollection
+            case .periods:
+                periodList
+            case .overrides:
+                overrideList
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var arrangementCollection: some View {
+        #if os(macOS)
+        MacScheduleTable(
+            schedules: sortedSchedules,
+            selection: $itemSelection,
+            deleteSchedule: { deleteItem(.schedule($0)) }
+        )
+        #else
+        List(sortedSchedules, selection: $itemSelection) { schedule in
+            ScheduleManagementRow(schedule: schedule)
+                .tag(ScheduleWorkspaceItem.schedule(schedule.persistentModelID))
+                .contextMenu {
+                    deleteButton("删除课程安排") {
+                        deleteItem(.schedule(schedule))
+                    }
+                }
+                .swipeActions {
+                    deleteButton("删除") {
+                        deleteItem(.schedule(schedule))
+                    }
+                }
+        }
+        .overlay {
+            if sortedSchedules.isEmpty {
+                ContentUnavailableView("尚无课程安排", systemImage: "calendar.day.timeline.left")
+            }
+        }
+        #endif
+    }
+
+    private var periodList: some View {
+        List(sortedPeriods, selection: $itemSelection) { period in
+            LabeledContent(period.name) {
+                Text("\(minuteText(period.startMinute)) - \(minuteText(period.endMinute))")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+            .tag(ScheduleWorkspaceItem.period(period.persistentModelID))
+            .contextMenu {
+                deleteButton("删除节次") {
+                    deleteItem(.period(period))
+                }
+            }
+            .swipeActions {
+                deleteButton("删除") {
+                    deleteItem(.period(period))
+                }
+            }
+        }
+        .overlay {
+            if sortedPeriods.isEmpty {
+                ContentUnavailableView("尚无节次", systemImage: "clock")
+            }
+        }
+    }
+
+    private var overrideList: some View {
+        List(sortedOverrides, selection: $itemSelection) { scheduleOverride in
+            ScheduleOverrideManagementRow(scheduleOverride: scheduleOverride)
+                .tag(ScheduleWorkspaceItem.scheduleOverride(scheduleOverride.persistentModelID))
+                .contextMenu {
+                    deleteButton("删除日期调整") {
+                        deleteItem(.scheduleOverride(scheduleOverride))
+                    }
+                }
+                .swipeActions {
+                    deleteButton("删除") {
+                        deleteItem(.scheduleOverride(scheduleOverride))
+                    }
+                }
+        }
+        .overlay {
+            if sortedOverrides.isEmpty {
+                ContentUnavailableView("尚无日期调整", systemImage: "calendar.badge.clock")
+            }
+        }
+    }
+
+    private func minuteText(_ minute: Int) -> String {
+        String(format: "%02d:%02d", minute / 60, minute % 60)
+    }
+
+    private func deleteButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(role: .destructive, action: action) {
+            Label(title, systemImage: "trash")
+        }
+    }
+}
+
+private struct MacScheduleTable: View {
+    let schedules: [CourseSchedule]
+    @Binding var selection: ScheduleWorkspaceItem?
+    let deleteSchedule: (CourseSchedule) -> Void
+
+    private var scheduleSelection: Binding<PersistentIdentifier?> {
+        Binding {
+            guard case .schedule(let identifier) = selection else { return nil }
+            return identifier
+        } set: { identifier in
+            selection = identifier.map(ScheduleWorkspaceItem.schedule)
+        }
+    }
+
+    var body: some View {
+        Table(schedules, selection: scheduleSelection) {
+            TableColumn("星期") { schedule in
+                Text(schedule.weekday.displayName)
+            }
+            .width(min: 54, ideal: 64)
+
+            TableColumn("时间") { schedule in
+                if let period = schedule.period {
+                    Text("\(minuteText(period.startMinute))-\(minuteText(period.endMinute))")
+                        .monospacedDigit()
+                }
+            }
+            .width(min: 88, ideal: 100)
+
+            TableColumn("课程") { schedule in
+                Text(schedule.course?.name ?? "未关联课程")
+            }
+
+            TableColumn("教师", value: \.teacher)
+            TableColumn("地点", value: \.location)
+            TableColumn("重复") { schedule in
+                Text(schedule.repeatRule.displayName)
+            }
+            .width(min: 54, ideal: 64)
+        }
+        .contextMenu(forSelectionType: PersistentIdentifier.self) { identifiers in
+            if let identifier = identifiers.first,
+               let schedule = schedules.first(where: { $0.persistentModelID == identifier }) {
+                Button(role: .destructive) {
+                    deleteSchedule(schedule)
+                } label: {
+                    Label("删除课程安排", systemImage: "trash")
+                }
+            }
+        }
+        .overlay {
+            if schedules.isEmpty {
+                ContentUnavailableView("尚无课程安排", systemImage: "calendar.day.timeline.left")
+            }
+        }
+    }
+
+    private func minuteText(_ minute: Int) -> String {
+        String(format: "%02d:%02d", minute / 60, minute % 60)
+    }
+}
+
+private struct ScheduleWorkspaceDetail: View {
+    @Environment(\.modelContext) private var modelContext
+    let selection: ScheduleWorkspaceItem?
+
+    var body: some View {
+        Group {
+            switch selection {
+            case .timetable(let identifier):
+                if let timetable = modelContext.model(for: identifier) as? Timetable {
+                    TimetableEditView(timetable: timetable, presentation: .embedded)
+                } else {
+                    unavailable
+                }
+            case .course(let identifier):
+                if let course = modelContext.model(for: identifier) as? Course {
+                    CourseEditView(course: course, presentation: .embedded)
+                } else {
+                    unavailable
+                }
+            case .period(let identifier):
+                if let period = modelContext.model(for: identifier) as? ClassPeriod,
+                   let timetable = period.timetable {
+                    ClassPeriodEditView(
+                        timetable: timetable,
+                        period: period,
+                        presentation: .embedded
+                    )
+                } else {
+                    unavailable
+                }
+            case .schedule(let identifier):
+                if let schedule = modelContext.model(for: identifier) as? CourseSchedule,
+                   let timetable = schedule.timetable {
+                    CourseScheduleEditView(
+                        timetable: timetable,
+                        schedule: schedule,
+                        presentation: .embedded
+                    )
+                } else {
+                    unavailable
+                }
+            case .scheduleOverride(let identifier):
+                if let scheduleOverride = modelContext.model(for: identifier) as? ScheduleOverride,
+                   let timetable = scheduleOverride.timetable {
+                    ScheduleOverrideEditView(
+                        timetable: timetable,
+                        scheduleOverride: scheduleOverride,
+                        presentation: .embedded
+                    )
+                } else {
+                    unavailable
+                }
+            case nil:
+                ContentUnavailableView("选择要编辑的内容", systemImage: "sidebar.right")
+            }
+        }
+        .frame(maxWidth: 720)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var unavailable: some View {
+        ContentUnavailableView("内容不可用", systemImage: "exclamationmark.triangle")
+    }
+}

@@ -17,82 +17,33 @@ struct AboutView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // 应用信息头部
+            List {
+                Section {
                     VStack(spacing: 12) {
                         Image(systemName: "graduationcap.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.blue)
+                            .font(.system(size: 52))
+                            .foregroundStyle(.blue)
                         
                         Text("The Dreamer")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .font(.title.bold())
                         
                         Text("由学生打造，为学生服务")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         
-                        Text("v6.0")
+                        Text(versionText)
                             .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                            .background(Color.secondary.opacity(0.2))
-                            .cornerRadius(8)
+                            .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.bottom, 20)
-                    
-                    // 项目信息
-                    DocumentSection(
-                        title: "项目信息",
-                        icon: "info.circle.fill",
-                        iconColor: .blue,
-                        content: projectInfo
-                    )
-                    
-                    // 致谢
-                    DocumentSection(
-                        title: "致谢",
-                        icon: "heart.fill",
-                        iconColor: .red,
-                        content: acknowledgements
-                    )
-                    
-                    // 许可证
-                    DocumentSection(
-                        title: "许可证",
-                        icon: "doc.text.fill",
-                        iconColor: .green,
-                        content: licenseInfo
-                    )
-                    
-                    // 贡献指南
-                    DocumentSection(
-                        title: "贡献指南",
-                        icon: "person.3.fill",
-                        iconColor: .orange,
-                        content: contributingGuide
-                    )
-                    
-                    // 行为准则
-                    DocumentSection(
-                        title: "行为准则",
-                        icon: "shield.fill",
-                        iconColor: .purple,
-                        content: codeOfConduct
-                    )
-                    
-                    // 版权声明
-                    DocumentSection(
-                        title: "版权声明",
-                        icon: "c.circle.fill",
-                        iconColor: .gray,
-                        content: copyrightNotice
-                    )
+                    .padding(.vertical, 12)
                 }
-                .padding()
+
+                documentSection("项目信息", systemImage: "info.circle", content: projectInfo)
+                documentSection("致谢", systemImage: "heart", content: acknowledgements)
+                documentSection("许可证", systemImage: "doc.text", content: licenseInfo)
+                documentSection("贡献指南", systemImage: "person.3", content: contributingGuide)
+                documentSection("行为准则", systemImage: "checkmark.shield", content: codeOfConduct)
+                documentSection("版权声明", systemImage: "c.circle", content: copyrightNotice)
             }
             .navigationTitle("关于")
         #if os(iOS)
@@ -107,6 +58,24 @@ struct AboutView: View {
             }
         }
     }
+
+    private var versionText: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
+        return "版本 \(version)（\(build)）"
+    }
+
+    private func documentSection(_ title: String, systemImage: String, content: String) -> some View {
+        Section {
+            DisclosureGroup {
+                Text(content)
+                    .textSelection(.enabled)
+                    .padding(.vertical, 8)
+            } label: {
+                Label(title, systemImage: systemImage)
+            }
+        }
+    }
     
     // 项目信息内容
     private var projectInfo: String {
@@ -115,8 +84,8 @@ struct AboutView: View {
         
         技术栈：
         • SwiftUI + SwiftData + Swift Charts
-        • iOS 18.0+
-        • Xcode 16+
+        • iOS 26+
+        • Xcode 26+
         
         核心功能：
         • 考试成绩管理
@@ -151,24 +120,15 @@ struct AboutView: View {
     // 许可证信息
     private var licenseInfo: String {
         """
-        Apache License 2.0
+        GNU General Public License v3.0
         
         Copyright © 2025 苏宇韬
         
-        Licensed under the Apache License, Version 2.0 (the "License");
-        you may not use this file except in compliance with the License.
-        You may obtain a copy of the License at
-        
-            http://www.apache.org/licenses/LICENSE-2.0
-        
-        Unless required by applicable law or agreed to in writing, software
-        distributed under the License is distributed on an "AS IS" BASIS,
-        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-        See the License for the specific language governing permissions and
-        limitations under the License.
-        
-        本软件按"原样"提供，不提供任何明示或暗示的保证。
-        详细条款请参阅完整的 Apache 2.0 许可证文本。
+        本程序是自由软件：您可以依据自由软件基金会发布的
+        GNU 通用公共许可证第 3 版重新发布和修改本程序。
+
+        本程序发布的目的是希望它有用，但不提供任何担保；
+        详细条款请参阅项目中的 GPLv3 许可证全文。
         """
     }
     
@@ -198,7 +158,7 @@ struct AboutView: View {
         • 确保代码编译时没有警告
         
         开发设置：
-        • 要求：Xcode 16+，iOS 18+ SDK
+        • 要求：Xcode 26+，iOS 26+ SDK
         • 技术栈：SwiftUI，SwiftData，Swift Charts
         • 架构：MV（Model-View）模式
         
@@ -269,62 +229,6 @@ struct AboutView: View {
         
         如需技术讨论或合作机会，欢迎联系。
         """
-    }
-}
-
-// 文档区块组件
-struct DocumentSection: View {
-    let title: String
-    let icon: String
-    let iconColor: Color
-    let content: String
-    
-    @State private var isExpanded = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 标题栏
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isExpanded.toggle()
-                }
-            }) {
-                HStack {
-                    Image(systemName: icon)
-                        .foregroundColor(iconColor)
-                        .frame(width: 24)
-                    
-                    Text(title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            // 内容区域
-            if isExpanded {
-                ScrollView {
-                    Text(content)
-                        .font(.body)
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(maxHeight: 300)
-                .padding(.leading, 32)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 }
 

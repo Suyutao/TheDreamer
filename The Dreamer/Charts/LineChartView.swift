@@ -318,7 +318,7 @@ struct LineChartView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.systemGray6Color)
         .cornerRadius(8)
     }
     

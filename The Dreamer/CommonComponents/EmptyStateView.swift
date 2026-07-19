@@ -64,6 +64,7 @@ struct EmptyStateView: View {
         }
         // 为整个组件添加内边距
         .padding()
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 

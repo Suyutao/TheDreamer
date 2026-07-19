@@ -407,7 +407,7 @@ struct ScatterChartView: View {
             .font(.caption2)
         }
         .padding(8)
-        .background(Color(.systemGray6))
+        .background(Color.systemGray6Color)
         .cornerRadius(6)
     }
     
@@ -434,7 +434,7 @@ struct ScatterChartView: View {
             }
         }
         .padding(8)
-        .background(Color(.systemGray6))
+        .background(Color.systemGray6Color)
         .cornerRadius(6)
     }
     

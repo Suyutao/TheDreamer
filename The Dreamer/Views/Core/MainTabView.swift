@@ -26,21 +26,64 @@ import SwiftData
 /// MainTabView 是应用的主标签页视图，它包含两个标签页：摘要和数据库。
 struct MainTabView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query private var timetables: [Timetable]
+    @State private var selection: MainDestination = .today
+
+    private var activeTimetable: Timetable? {
+        timetables.first(where: { $0.isCurrent }) ?? timetables.first
+    }
     
     var body: some View {
-        TabView {
-            Database()
-                .tabItem {
-                    Label("摘要", systemImage: "chart.bar.doc.horizontal")
+        Group {
+            #if os(macOS)
+            NavigationSplitView {
+                List(selection: $selection) {
+                    ForEach(MainDestination.allCases) { destination in
+                        Label(destination.title, systemImage: destination.systemImage)
+                            .tag(destination)
+                    }
                 }
-            
-            AnalysisView()
-                .tabItem {
-                    Label("数据库", systemImage: "cylinder.split.1x2")
+                .listStyle(.sidebar)
+                .navigationTitle("The Dreamer")
+                .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 280)
+            } detail: {
+                destinationView(selection)
+            }
+            #else
+            TabView(selection: $selection) {
+                ForEach(MainDestination.allCases) { destination in
+                    destinationView(destination)
+                        .tabItem {
+                            Label(destination.title, systemImage: destination.systemImage)
+                        }
+                        .tag(destination)
                 }
+            }
+            #endif
         }
         .onAppear {
             performDataIntegrityCheck()
+        }
+        .task {
+            do {
+                try await CourseNotificationService.refreshIfAuthorized(timetable: activeTimetable)
+            } catch {
+                print("[\(Date())] 课程提醒更新失败: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func destinationView(_ destination: MainDestination) -> some View {
+        switch destination {
+        case .today:
+            TodayView()
+        case .analysis:
+            DashboardAnalysisView()
+        case .database:
+            Database()
+        case .schedule:
+            ScheduleView()
         }
     }
     
@@ -207,6 +250,33 @@ struct MainTabView: View {
             }
         } catch {
             print("[\(Date())] 时间戳回填失败: \(error.localizedDescription)")
+        }
+    }
+}
+
+private enum MainDestination: String, CaseIterable, Identifiable {
+    case today
+    case analysis
+    case database
+    case schedule
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .today: "今天"
+        case .analysis: "分析"
+        case .database: "数据库"
+        case .schedule: "课程表"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .today: "sun.horizon.fill"
+        case .analysis: "chart.line.uptrend.xyaxis"
+        case .database: "cylinder.split.1x2"
+        case .schedule: "tablecells"
         }
     }
 }
