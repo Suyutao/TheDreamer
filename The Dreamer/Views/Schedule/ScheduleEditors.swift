@@ -88,6 +88,7 @@ struct TimetableEditView: View {
                 Text(saveError ?? "未知错误")
             }
         }
+        .focusedSceneValue(\.scheduleSaveAction, save)
     }
 
     private func save() {
@@ -223,6 +224,7 @@ struct CourseEditView: View {
                 Text(saveError ?? "未知错误")
             }
         }
+        .focusedSceneValue(\.scheduleSaveAction, save)
     }
 
     private func save() {
@@ -371,6 +373,7 @@ struct ClassPeriodEditView: View {
                 Text(saveError ?? "未知错误")
             }
         }
+        .focusedSceneValue(\.scheduleSaveAction, save)
     }
 
     private func save() {
@@ -558,7 +561,7 @@ struct CourseScheduleEditView: View {
                     Button("保存") {
                         Task { await save() }
                     }
-                        .disabled(validationMessage != nil)
+                    .disabled(validationMessage != nil)
                 }
             }
             .onAppear {
@@ -573,6 +576,9 @@ struct CourseScheduleEditView: View {
             } message: {
                 Text(saveError ?? "未知错误")
             }
+        }
+        .focusedSceneValue(\.scheduleSaveAction) {
+            Task { await save() }
         }
     }
 
@@ -876,6 +882,7 @@ struct ScheduleOverrideEditView: View {
                 Text(saveError ?? "未知错误")
             }
         }
+        .focusedSceneValue(\.scheduleSaveAction, save)
     }
 
     private func save() {

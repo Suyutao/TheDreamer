@@ -62,11 +62,21 @@ struct TheDreamerApp: App {
         }
         // 将我们创建的模型容器附加到场景中，这样应用的所有部分都可以访问这些数据模型
         .modelContainer(sharedModelContainer)
+        .commands {
+            ScheduleWorkspaceCommands()
+        }
 
         WindowGroup("课程表", id: "timetable-workspace", for: PersistentIdentifier.self) { timetableID in
             TimetableWindowView(timetableID: timetableID.wrappedValue)
         }
         .modelContainer(sharedModelContainer)
+        .commands {
+            ScheduleWorkspaceCommands()
+        }
+        #if os(macOS)
+        .defaultSize(width: 1180, height: 760)
+        .windowResizability(.contentMinSize)
+        #endif
     }
 }
 

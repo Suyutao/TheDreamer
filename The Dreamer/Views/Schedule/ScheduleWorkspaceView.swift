@@ -25,6 +25,7 @@ struct ScheduleWorkspaceView: View {
     @State private var category: ScheduleWorkspaceCategory = .arrangements
     @State private var itemSelection: ScheduleWorkspaceItem?
     @State private var editorRequest: ScheduleEditorRequest?
+    @State private var deletionRequest: ScheduleWorkspaceDeletionRequest?
 
     init(initialTimetableID: PersistentIdentifier? = nil) {
         _sidebarSelection = State(
@@ -40,13 +41,48 @@ struct ScheduleWorkspaceView: View {
         return modelContext.model(for: identifier) as? Timetable
     }
 
+    private var selectedDeletionRequest: ScheduleWorkspaceDeletionRequest? {
+        switch itemSelection {
+        case .timetable(let identifier):
+            (modelContext.model(for: identifier) as? Timetable).map(
+                ScheduleWorkspaceDeletionRequest.timetable
+            )
+        case .course(let identifier):
+            (modelContext.model(for: identifier) as? Course).map(
+                ScheduleWorkspaceDeletionRequest.course
+            )
+        case .period(let identifier):
+            (modelContext.model(for: identifier) as? ClassPeriod).map(
+                ScheduleWorkspaceDeletionRequest.period
+            )
+        case .schedule(let identifier):
+            (modelContext.model(for: identifier) as? CourseSchedule).map(
+                ScheduleWorkspaceDeletionRequest.schedule
+            )
+        case .scheduleOverride(let identifier):
+            (modelContext.model(for: identifier) as? ScheduleOverride).map(
+                ScheduleWorkspaceDeletionRequest.scheduleOverride
+            )
+        case nil:
+            nil
+        }
+    }
+
+    private var deleteAction: (() -> Void)? {
+        guard let selectedDeletionRequest else { return nil }
+        return {
+            deletionRequest = selectedDeletionRequest
+        }
+    }
+
     var body: some View {
         NavigationSplitView {
             ScheduleWorkspaceSidebar(
                 timetables: timetables,
                 selection: $sidebarSelection,
                 createTimetable: { editorRequest = .timetable(nil) },
-                createCourse: { editorRequest = .course(nil) }
+                createCourse: { editorRequest = .course(nil) },
+                deleteTimetable: { deletionRequest = .timetable($0) }
             )
             .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } content: {
@@ -56,7 +92,8 @@ struct ScheduleWorkspaceView: View {
                 sidebarSelection: sidebarSelection,
                 category: $category,
                 itemSelection: $itemSelection,
-                createItem: createItem
+                createItem: createItem,
+                deleteItem: { deletionRequest = $0 }
             )
             .navigationSplitViewColumnWidth(min: 320, ideal: 440, max: 620)
         } detail: {
@@ -74,6 +111,14 @@ struct ScheduleWorkspaceView: View {
                         )
                     }
                     .help("在新窗口中打开")
+                }
+
+                if let selectedDeletionRequest {
+                    Button("删除", systemImage: "trash", role: .destructive) {
+                        deletionRequest = selectedDeletionRequest
+                    }
+                    .keyboardShortcut(.delete, modifiers: [])
+                    .help("删除所选内容")
                 }
 
                 Menu {
@@ -104,6 +149,13 @@ struct ScheduleWorkspaceView: View {
         .sheet(item: $editorRequest) { request in
             ScheduleEditorSheet(request: request)
         }
+        .focusedSceneValue(\.scheduleNewAction, createItem)
+        .focusedSceneValue(\.scheduleDeleteAction, deleteAction)
+        .scheduleWorkspaceDeletion(
+            request: $deletionRequest,
+            sidebarSelection: $sidebarSelection,
+            itemSelection: $itemSelection
+        )
         .onAppear(perform: selectInitialDestination)
         .onChange(of: sidebarSelection, handleSidebarSelection)
         .onChange(of: timetables.map(\.persistentModelID), handleTimetableChanges)
@@ -164,6 +216,7 @@ private struct ScheduleWorkspaceSidebar: View {
     @Binding var selection: ScheduleWorkspaceSidebarSelection?
     let createTimetable: () -> Void
     let createCourse: () -> Void
+    let deleteTimetable: (Timetable) -> Void
 
     var body: some View {
         List(selection: $selection) {
@@ -184,6 +237,12 @@ private struct ScheduleWorkspaceSidebar: View {
                     .contextMenu {
                         Button("编辑课程表", systemImage: "pencil") {
                             selection = .timetable(timetable.persistentModelID)
+                        }
+                        Divider()
+                        Button(role: .destructive) {
+                            deleteTimetable(timetable)
+                        } label: {
+                            Label("删除课程表", systemImage: "trash")
                         }
                     }
                 }
@@ -210,6 +269,7 @@ private struct ScheduleWorkspaceContent: View {
     @Binding var category: ScheduleWorkspaceCategory
     @Binding var itemSelection: ScheduleWorkspaceItem?
     let createItem: () -> Void
+    let deleteItem: (ScheduleWorkspaceDeletionRequest) -> Void
 
     private var sortedSchedules: [CourseSchedule] {
         guard let timetable else { return [] }
@@ -257,6 +317,16 @@ private struct ScheduleWorkspaceContent: View {
         List(courses, selection: $itemSelection) { course in
             Label(course.name, systemImage: course.systemImage)
                 .tag(ScheduleWorkspaceItem.course(course.persistentModelID))
+                .contextMenu {
+                    deleteButton("删除课程") {
+                        deleteItem(.course(course))
+                    }
+                }
+                .swipeActions {
+                    deleteButton("删除") {
+                        deleteItem(.course(course))
+                    }
+                }
         }
         .overlay {
             if courses.isEmpty {
@@ -293,11 +363,25 @@ private struct ScheduleWorkspaceContent: View {
     @ViewBuilder
     private var arrangementCollection: some View {
         #if os(macOS)
-        MacScheduleTable(schedules: sortedSchedules, selection: $itemSelection)
+        MacScheduleTable(
+            schedules: sortedSchedules,
+            selection: $itemSelection,
+            deleteSchedule: { deleteItem(.schedule($0)) }
+        )
         #else
         List(sortedSchedules, selection: $itemSelection) { schedule in
             ScheduleManagementRow(schedule: schedule)
                 .tag(ScheduleWorkspaceItem.schedule(schedule.persistentModelID))
+                .contextMenu {
+                    deleteButton("删除课程安排") {
+                        deleteItem(.schedule(schedule))
+                    }
+                }
+                .swipeActions {
+                    deleteButton("删除") {
+                        deleteItem(.schedule(schedule))
+                    }
+                }
         }
         .overlay {
             if sortedSchedules.isEmpty {
@@ -315,6 +399,16 @@ private struct ScheduleWorkspaceContent: View {
                     .foregroundStyle(.secondary)
             }
             .tag(ScheduleWorkspaceItem.period(period.persistentModelID))
+            .contextMenu {
+                deleteButton("删除节次") {
+                    deleteItem(.period(period))
+                }
+            }
+            .swipeActions {
+                deleteButton("删除") {
+                    deleteItem(.period(period))
+                }
+            }
         }
         .overlay {
             if sortedPeriods.isEmpty {
@@ -327,6 +421,16 @@ private struct ScheduleWorkspaceContent: View {
         List(sortedOverrides, selection: $itemSelection) { scheduleOverride in
             ScheduleOverrideManagementRow(scheduleOverride: scheduleOverride)
                 .tag(ScheduleWorkspaceItem.scheduleOverride(scheduleOverride.persistentModelID))
+                .contextMenu {
+                    deleteButton("删除日期调整") {
+                        deleteItem(.scheduleOverride(scheduleOverride))
+                    }
+                }
+                .swipeActions {
+                    deleteButton("删除") {
+                        deleteItem(.scheduleOverride(scheduleOverride))
+                    }
+                }
         }
         .overlay {
             if sortedOverrides.isEmpty {
@@ -338,11 +442,18 @@ private struct ScheduleWorkspaceContent: View {
     private func minuteText(_ minute: Int) -> String {
         String(format: "%02d:%02d", minute / 60, minute % 60)
     }
+
+    private func deleteButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(role: .destructive, action: action) {
+            Label(title, systemImage: "trash")
+        }
+    }
 }
 
 private struct MacScheduleTable: View {
     let schedules: [CourseSchedule]
     @Binding var selection: ScheduleWorkspaceItem?
+    let deleteSchedule: (CourseSchedule) -> Void
 
     private var scheduleSelection: Binding<PersistentIdentifier?> {
         Binding {
@@ -378,6 +489,16 @@ private struct MacScheduleTable: View {
                 Text(schedule.repeatRule.displayName)
             }
             .width(min: 54, ideal: 64)
+        }
+        .contextMenu(forSelectionType: PersistentIdentifier.self) { identifiers in
+            if let identifier = identifiers.first,
+               let schedule = schedules.first(where: { $0.persistentModelID == identifier }) {
+                Button(role: .destructive) {
+                    deleteSchedule(schedule)
+                } label: {
+                    Label("删除课程安排", systemImage: "trash")
+                }
+            }
         }
         .overlay {
             if schedules.isEmpty {
