@@ -2,7 +2,5 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>用于将你选择的课程安排写入系统日历，并在课程调整时更新对应事件。</string>
 </dict>
 </plist>
