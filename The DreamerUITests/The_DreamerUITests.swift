@@ -82,8 +82,27 @@ final class The_DreamerUITests: XCTestCase {
         createTimetable.tap()
 
         XCTAssertTrue(app.navigationBars["新建课程表"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.textFields["课程表名称"].exists)
-        XCTAssertTrue(app.buttons["保存"].exists)
+        let timetableName = "iPad 多窗口测试"
+        let nameField = app.textFields["课程表名称"]
+        XCTAssertTrue(nameField.exists)
+        nameField.tap()
+        nameField.typeText(timetableName)
+
+        let saveButton = app.buttons["保存"]
+        XCTAssertTrue(saveButton.exists)
+        saveButton.tap()
+
+        let timetable = app.descendants(matching: .any)[timetableName].firstMatch
+        XCTAssertTrue(timetable.waitForExistence(timeout: 5))
+        timetable.tap()
+
+        let openWindow = app.buttons["在新窗口中打开"]
+        XCTAssertTrue(openWindow.waitForExistence(timeout: 5))
+        let initialWindowCount = app.windows.count
+        openWindow.tap()
+
+        XCTAssertTrue(app.windows.element(boundBy: initialWindowCount).waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(app.windows.count, initialWindowCount)
     }
     #endif
 
