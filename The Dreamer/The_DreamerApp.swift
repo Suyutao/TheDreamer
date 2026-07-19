@@ -38,8 +38,11 @@ struct TheDreamerApp: App {
     private let modelContainerError: String?
 
     init() {
+        let usesInMemoryStore = ProcessInfo.processInfo.arguments.contains("-useInMemoryStore")
         do {
-            sharedModelContainer = try TheDreamerModelContainer.make()
+            sharedModelContainer = try TheDreamerModelContainer.make(
+                isStoredInMemoryOnly: usesInMemoryStore
+            )
             modelContainerError = nil
         } catch {
             modelContainerError = String(describing: error)

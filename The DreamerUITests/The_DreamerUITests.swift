@@ -51,10 +51,11 @@ final class The_DreamerUITests: XCTestCase {
         XCTAssertEqual(message.frame.midX, windowCenter, accuracy: 1)
     }
 
+    #if os(iOS)
     @MainActor
     func testIPadTimetableManagementUsesThreeColumns() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launchArguments = ["-useInMemoryStore", "-hasCompletedOnboarding", "YES"]
         app.launch()
         XCUIDevice.shared.orientation = .landscapeLeft
 
@@ -84,6 +85,52 @@ final class The_DreamerUITests: XCTestCase {
         XCTAssertTrue(app.textFields["课程表名称"].exists)
         XCTAssertTrue(app.buttons["保存"].exists)
     }
+    #endif
+
+    #if os(macOS)
+    @MainActor
+    func testMacTimetableManagementOpensIndependentWindow() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-useInMemoryStore", "-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let scheduleDestination = app.descendants(matching: .any)["课程表"].firstMatch
+        XCTAssertTrue(scheduleDestination.waitForExistence(timeout: 5))
+        scheduleDestination.tap()
+
+        let managementLink = app.buttons["管理课程与课程表"]
+        XCTAssertTrue(managementLink.waitForExistence(timeout: 5))
+        managementLink.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["课程管理"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["课程库"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["选择要编辑的内容"].firstMatch.exists)
+
+        let timetableName = "Mac 多窗口测试"
+        let timetable = app.descendants(matching: .any)[timetableName].firstMatch
+        if !timetable.exists {
+            let createTimetable = app.descendants(matching: .any)["新建课程表"].firstMatch
+            XCTAssertTrue(createTimetable.exists)
+            createTimetable.tap()
+
+            let nameField = app.textFields["课程表名称"]
+            XCTAssertTrue(nameField.waitForExistence(timeout: 5))
+            nameField.click()
+            nameField.typeText(timetableName)
+            app.buttons["保存"].click()
+        }
+
+        XCTAssertTrue(timetable.waitForExistence(timeout: 5))
+        timetable.click()
+
+        let openWindow = app.buttons["在新窗口中打开"]
+        XCTAssertTrue(openWindow.waitForExistence(timeout: 5))
+        openWindow.click()
+
+        XCTAssertTrue(app.windows.element(boundBy: 1).waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(app.windows.count, 2)
+    }
+    #endif
 
     @MainActor
     func testLaunchPerformance() throws {
