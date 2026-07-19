@@ -52,6 +52,40 @@ final class The_DreamerUITests: XCTestCase {
     }
 
     @MainActor
+    func testIPadTimetableManagementUsesThreeColumns() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+        XCUIDevice.shared.orientation = .landscapeLeft
+
+        let scheduleTab = app.descendants(matching: .any)["课程表"].firstMatch
+        XCTAssertTrue(scheduleTab.waitForExistence(timeout: 5))
+        scheduleTab.tap()
+
+        let managementLink = app.buttons["管理课程与课程表"]
+        XCTAssertTrue(managementLink.waitForExistence(timeout: 5))
+        managementLink.tap()
+
+        let sidebarTitle = app.descendants(matching: .any)["课程管理"].firstMatch
+        let contentTitle = app.descendants(matching: .any)["课程库"].firstMatch
+        let detailTitle = app.descendants(matching: .any)["选择要编辑的内容"].firstMatch
+
+        XCTAssertTrue(sidebarTitle.waitForExistence(timeout: 5))
+        XCTAssertTrue(contentTitle.waitForExistence(timeout: 5))
+        XCTAssertTrue(detailTitle.waitForExistence(timeout: 5))
+        XCTAssertLessThan(sidebarTitle.frame.midX, contentTitle.frame.midX)
+        XCTAssertLessThan(contentTitle.frame.midX, detailTitle.frame.midX)
+
+        let createTimetable = app.buttons["新建课程表"].firstMatch
+        XCTAssertTrue(createTimetable.exists)
+        createTimetable.tap()
+
+        XCTAssertTrue(app.navigationBars["新建课程表"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["课程表名称"].exists)
+        XCTAssertTrue(app.buttons["保存"].exists)
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {

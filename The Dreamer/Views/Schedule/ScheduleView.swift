@@ -40,6 +40,7 @@ struct ScheduleView: View {
                     } label: {
                         Image(systemName: "slider.horizontal.3")
                     }
+                    .accessibilityLabel("管理课程与课程表")
                     .help("管理课程与课程表")
                 }
             }
