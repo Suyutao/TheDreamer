@@ -175,7 +175,7 @@ private struct WeekDateStrip: View {
                         Text(date, format: .dateTime.weekday(.narrow))
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Text(date, format: .dateTime.day())
+                        Text(verbatim: "\(Calendar.current.component(.day, from: date))")
                             .font(.body.weight(isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? Color.white : Color.primary)
                             .frame(width: 34, height: 34)
@@ -299,7 +299,7 @@ private struct WideDayColumn: View {
                 VStack(spacing: 4) {
                     Text(date, format: .dateTime.weekday(.abbreviated))
                         .font(.caption)
-                    Text(date, format: .dateTime.day())
+                    Text(verbatim: "\(Calendar.current.component(.day, from: date))")
                         .font(.headline)
                 }
                 .foregroundStyle(
