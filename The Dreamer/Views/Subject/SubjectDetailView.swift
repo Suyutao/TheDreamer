@@ -162,7 +162,6 @@ struct SubjectDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("最近成绩变化")
                             .font(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .leading)
 
                         LineChartView(
                             dataPoints: points,
@@ -172,7 +171,6 @@ struct SubjectDetailView: View {
                             chartStyle: .smooth,
                             showYAxisAsPercentage: false
                         )
-                        .frame(height: 200)
                     }
                 }
             }
